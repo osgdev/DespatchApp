@@ -1,0 +1,11 @@
+/* Styling required so title doesn't change colour when mouse is hovered over it  */
+
+.titled-pane > .title 
+{
+	-fx-background-color: #ececec;
+}
+
+.titled-pane > *.content 
+{
+	-fx-background-color: -fx-background;
+ }

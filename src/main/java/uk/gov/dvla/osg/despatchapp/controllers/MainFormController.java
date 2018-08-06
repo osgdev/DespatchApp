@@ -12,6 +12,9 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import uk.gov.dvla.osg.despatchapp.models.JobId;
+import uk.gov.dvla.osg.despatchapp.utilities.BarcodeReader;
+import uk.gov.dvla.osg.despatchapp.utilities.DateUtils;
+import uk.gov.dvla.osg.despatchapp.utilities.FxUtils;
 
 public class MainFormController {
 
@@ -85,10 +88,10 @@ public class MainFormController {
     
     @FXML
     private void submit() {
+        String successMsg = model.size() == 1 ? "1 item sent to RPD" : model.size() + " items sent to RPD!";
         boolean success = submitFileController.submit();
         if (success) {
-            String msg = model.size() == 1 ? "1 item sent to RPD" : model.size() + " items sent to RPD!";
-            FxUtils.displaySuccessMessage(lblError, msg);
+            FxUtils.displaySuccessMessage(lblError, successMsg);
         }
     }
     

@@ -1,4 +1,4 @@
-package uk.gov.dvla.osg.despatchapp.controllers;
+package uk.gov.dvla.osg.despatchapp.utilities;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;

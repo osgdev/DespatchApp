@@ -1,10 +1,10 @@
-package uk.gov.dvla.osg.despatchapp.controllers;
+package uk.gov.dvla.osg.despatchapp.utilities;
 
 import java.time.Instant;
 
 import javafx.scene.input.KeyEvent;
 
-class BarcodeReader {
+public class BarcodeReader {
 
     private static final long THRESHOLD = 100;
     private static final int MIN_BARCODE_LENGTH = 10;
@@ -22,7 +22,7 @@ class BarcodeReader {
      * @return true, when a full barcode has been scanned, false for every character prior to the 'Enter' key,
      * or when keyboard has been used as input.
      */
-    boolean handle(KeyEvent event) {
+    public boolean handle(KeyEvent event) {
         long now = Instant.now().toEpochMilli();
         long elapsedTime = now - lastEventTimeStamp;
         // events must come fast enough to separate from manual input
@@ -48,7 +48,7 @@ class BarcodeReader {
      * Call when the handle event returns true, to retrieve the scanned barcode.
      * @return the barcode
      */
-    String getBarcode() {
+    public String getBarcode() {
         return barcode.toString();
     }
 }
