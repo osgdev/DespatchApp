@@ -18,7 +18,7 @@ public class RemoveItemDialog {
        // create dialog
         dialog.setTitle("Delete Selected Item");
         DialogPane dialogPane = dialog.getDialogPane();
-        dialogPane.getButtonTypes().addAll(ButtonType.YES, ButtonType.CANCEL);
+        dialogPane.getButtonTypes().addAll(ButtonType.YES, ButtonType.NO);
         dialogPane.setContentText("Do you want to remove " + str + "?");
     }
     

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Configuration>
+	<Appenders>
+		<Console target="SYSTEM_OUT" name="console">
+			<PatternLayout pattern="%d{dd-MM-yyyy HH:mm:ss} [%-5level] %c{36} - %msg%ex{short}%n" />
+		</Console>
+		<RollingFile name="rollingFile">
+			<FileName>J:/osg/OIs/RPD/DespatchApp.log</FileName>
+			<FilePattern>J:/osg/OIs/RPD/reprint-%d{MM-yyyy}.log</FilePattern>
+			<PatternLayout>
+				<Pattern>%d{dd-MM-yyyy HH:mm:ss} [%-5level] %c{36} - %msg%ex{short}%n</Pattern>
+			</PatternLayout>
+			<Policies>
+				<TimeBasedTriggeringPolicy interval="1"/>
+			</Policies>
+			<DefaultRolloverStrategy max="1" />
+		</RollingFile>
+	</Appenders>
+
+	<Loggers>
+		<Logger name="gov.dvla.osg.despatchapp" level="all">
+			<AppenderRef ref="rollingFile" />
+		</Logger>
+		<Root level="all">
+			<AppenderRef level="all" ref="console" />
+		</Root>
+	</Loggers>
+
+</Configuration>

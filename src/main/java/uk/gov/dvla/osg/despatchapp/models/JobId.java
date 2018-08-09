@@ -1,5 +1,8 @@
 package uk.gov.dvla.osg.despatchapp.models;
 
+import java.util.Arrays;
+import java.util.List;
+
 public class JobId {
     
     // Ten Digit RPD Job ID
@@ -17,6 +20,18 @@ public class JobId {
         return new JobId(jId, timeStamp);
     }
 
+    /**
+     * New instance of a JobId parsed from an input string.
+     * @param input the input
+     * @return the job id
+     */
+    public static JobId fromString(String input) {
+        List<String> array = Arrays.asList(input.split("\t"));
+        String jid = array.get(0);
+        String time = array.get(1);
+        return new JobId(jid, time);
+    }
+    
     /**
      * Instantiates a new job id.
      * @param jId the job id

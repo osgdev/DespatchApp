@@ -25,8 +25,6 @@ public class LogInController {
     @FXML private Button btnLogin;
     @FXML private Label lblMessage;
 
-    private ErrMsgDialog errMsg = new ErrMsgDialog();
-
     /**
      * Submits login request to RPD webservice. If token is retrieved then the user
      * is authenticated, else the RPD error message is displayed.
@@ -55,7 +53,9 @@ public class LogInController {
             if (!token.isPresent() && !DEBUG_MODE) {
                 Platform.runLater(() -> {
                     RpdErrorResponse error = login.getErrorResponse();
-                    errMsg.display(error.getCode(), error.getMessage(), error.getAction());
+                    ErrMsgDialog.builder(error.getCode(), error.getMessage())
+                                .action(error.getAction())
+                                .display();
                     // cleanup fields
                     lblMessage.setText("");
                     passwordField.setText("");
@@ -64,8 +64,12 @@ public class LogInController {
                     passwordField.requestFocus();
                 });
             } else {
-                Session.getInstance().setToken(token.get());
-                ((Stage) btnLogin.getScene().getWindow()).close();
+                if (!DEBUG_MODE) {
+                    Session.getInstance().setToken(token.get());
+                }
+                Platform.runLater(() -> {
+                    ((Stage) btnLogin.getScene().getWindow()).close();
+                });
             }
         }).start();
     }

@@ -10,9 +10,9 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<VBox onKeyTyped="#keyTyped" spacing="20.0" xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml" fx:controller="uk.gov.dvla.osg.despatchapp.controllers.MainFormController">
+<VBox onKeyTyped="#keyTyped" spacing="20.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="uk.gov.dvla.osg.despatchapp.controllers.MainFormController">
    <children>
-      <HBox fx:id="hBoxTop" fillHeight="false">
+      <HBox fillHeight="false">
          <children>
             <Label fx:id="lblSite" prefHeight="30.0" textOverrun="CLIP" HBox.hgrow="ALWAYS">
                <font>
@@ -28,7 +28,7 @@
             </Label>
          </children>
       </HBox>
-      <ListView fx:id="lbContent" onMousePressed="#mousePressed" prefHeight="200.0" prefWidth="300.0" stylesheets="@../CSS/noborder.css" />
+      <ListView fx:id="lvContent" onKeyPressed="#lvKeyPressed" onMousePressed="#mousePressed" prefHeight="200.0" prefWidth="300.0" stylesheets="@../CSS/noborder.css" />
       <HBox fillHeight="false">
          <children>
             <Label fx:id="lblError" prefHeight="30.0" textFill="#f22424">
