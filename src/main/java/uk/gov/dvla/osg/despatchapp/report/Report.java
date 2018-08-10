@@ -2,16 +2,14 @@ package uk.gov.dvla.osg.despatchapp.report;
 
 import java.awt.Desktop;
 import java.io.*;
-import java.util.Date;
 import java.util.List;
-
-import org.apache.commons.lang3.time.DateFormatUtils;
 
 import com.itextpdf.text.Document;
 import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.Paragraph;
 import com.itextpdf.text.pdf.PdfWriter;
 
+import uk.gov.dvla.osg.despatchapp.utilities.DateFormatUtilsExtra;
 import uk.gov.dvla.osg.despatchapp.views.ErrMsgDialog;
 import uk.gov.dvla.osg.rpd.web.config.Session;
 
@@ -27,7 +25,6 @@ public class Report {
 	 * @param reportContent
 	 */
 	public static void writePDFreport(List<String> reportContent, String fileName) {
-
 		try {
 			String fName = getFileName(fileName);
 			validateFile(fName);
@@ -40,6 +37,15 @@ public class Report {
 		}
 	}
 
+    /**
+     * Write file contents.
+     *
+     * @param reportContent the report content
+     * @param fName the f name
+     * @throws DocumentException the document exception
+     * @throws IOException Signals that an I/O exception has occurred.
+     * @throws FileNotFoundException the file not found exception
+     */
     private static void writeFileContents(List<String> reportContent, String fName) throws DocumentException, IOException, FileNotFoundException {
         try (FileOutputStream fos = new FileOutputStream(fName)) {
             // pdf document object to write to file
@@ -49,7 +55,7 @@ public class Report {
         	// all text is appended to a single paragraph
         	Paragraph p = new Paragraph();
         	// generate timestamp
-        	String timeStamp = DateFormatUtils.format(new Date(), "dd/MM/yyyy @ HH:mm:ss");
+        	String timeStamp = DateFormatUtilsExtra.timeStamp("dd/MM/yyyy @ HH:mm:ss");
         	// add the report headng
         	p.add("Despatch Report");
         	p.add("\n\nSubmitted on " + timeStamp + " by " + Session.getInstance().getUserName() + ":\n\n");
@@ -93,7 +99,7 @@ public class Report {
      * @return the file name
      */
     private static String getFileName(String fileName) {
-        String timeStamp = DateFormatUtils.format(new Date(), "ddMMyyyy_HHmmss");
+        String timeStamp = DateFormatUtilsExtra.timeStamp("ddMMyyyy_HHmmss");
         return fileName + Session.getInstance().getUserName() + "." + timeStamp + ".pdf";
     }
 }

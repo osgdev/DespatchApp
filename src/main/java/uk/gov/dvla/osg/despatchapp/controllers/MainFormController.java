@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 
+import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
@@ -16,14 +17,14 @@ import javafx.scene.input.*;
 import uk.gov.dvla.osg.despatchapp.data.FileManager;
 import uk.gov.dvla.osg.despatchapp.models.JobId;
 import uk.gov.dvla.osg.despatchapp.utilities.BarcodeReader;
-import uk.gov.dvla.osg.despatchapp.utilities.DateUtils;
+import uk.gov.dvla.osg.despatchapp.utilities.DateFormatUtilsExtra;
 import uk.gov.dvla.osg.despatchapp.utilities.FxUtils;
 import uk.gov.dvla.osg.despatchapp.views.ErrMsgDialog;
-import uk.gov.dvla.osg.vault.enums.Site;
 
 public class MainFormController {
 
-    private static final ObservableList<String> SITES = FXCollections.observableArrayList("MORRISTON", "TY FELIN");
+    private static final String EMPTY = "";
+    private static final ObservableList<String> SITES = FXCollections.observableArrayList("MORRISTON", "TY FELIN", "BRP");
     private static final int JID_LENGTH = 10;
     
     @FXML private ChoiceBox cbSite;
@@ -52,10 +53,10 @@ public class MainFormController {
             lvContent.setDisable(false);
             FxUtils.enableNode(btnSubmit);
             lblSite.requestFocus();
-            Site site = siteString.equals("MORRISTON") ? Site.M : Site.F;
-            fileManager = new FileManager(site);
+            //Site site = siteString.equals("MORRISTON") ? Site.M : Site.F;
+            fileManager = new FileManager(siteString);
             removeItemController = new RemoveItemController(fileManager);
-            submitFileController = new SubmitFileController(site, fileManager);
+            submitFileController = new SubmitFileController(siteString, fileManager);
             try {
                 List<String> fileLines = fileManager.read();
                 for (String line : fileLines) {
@@ -80,7 +81,8 @@ public class MainFormController {
             // Barcode Reader has returned an enter key, check if input is a valid Job ID
             String input = barcodeReader.getBarcode();
             if (barcodeIsJobId(input)) {
-                JobId jid = JobId.newInstance(input, DateUtils.getTimeStamp("dd/MM/yy hh:mm:ss"));
+                String timeStamp = DateFormatUtilsExtra.timeStamp("dd/MM/yy hh:mm:ss");
+                JobId jid = JobId.newInstance(input, timeStamp);
                 // Check if ID has already been entered
                 if (model.contains(jid)) {
                     FxUtils.displayErrorMessage(lblError, "Job ID already entered!");
@@ -120,27 +122,38 @@ public class MainFormController {
     @FXML
     private void mousePressed(MouseEvent e) {
         // Check right mouse button clicked
-        if (e.getButton() == MouseButton.SECONDARY && !model.isEmpty()) {
+        if (!model.isEmpty() && e.getButton() == MouseButton.SECONDARY) {
             removeItemController.remove(lvContent);
         }
     }
 
     @FXML
     private void submit() {
+        
         if (model.size() > 0) {
-            String successMsg = model.size() == 1 ? "1 item sent to RPD" : model.size() + " items sent to RPD!";
+            // Add progress indicator to button
+            Platform.runLater(() -> {
+                btnSubmit.setText(EMPTY);
+                btnSubmit.setGraphic(new ProgressIndicator());
+             });
             // Convert model to list of strings
             List<String> jobIdList = model.stream().map(jid -> jid.getJobId()).collect(Collectors.toList());
             boolean success = submitFileController.submit(jobIdList);
             if (success) {
+                String successMsg = jobIdList.size() == 1 ? "1 item sent to RPD" : jobIdList.size() + " items sent to RPD!";
                 model.clear();
                 FxUtils.displaySuccessMessage(lblError, successMsg);
             }
+            // Reset button
+            Platform.runLater(() -> {
+                btnSubmit.setText("Submit");
+                btnSubmit.setGraphic(null);
+            });
         } else {
             FxUtils.displayErrorMessage(lblError, "No items to send.");
         }
     }
-
+    
     /**
      * Validates if the entered barcode is a valid ten-digit RPD job id.
      * 

@@ -59,6 +59,7 @@ public class AppConfig {
    }
    /*****************************************************************************************/
 
+   private String repoDir;
     private String mDatFile;
     private String mEotFile;
     private String mTempFile;
@@ -67,22 +68,36 @@ public class AppConfig {
     private String fTempFile;
     private String mReportFile;
     private String fReportFile;
+    private int retentionPeriod;
+
+    private String brpTempFile;
+
+    private String brpDatFile;
+
+    private String brpEotFile;
+
     
     /**
      * Instantiates a new network config from the fields in the property file.
      */
     private AppConfig() {
         // PropertyLoader loads the properties from the configuration file and validates each entry
+        // Temp files include the full path name, other files are stored together in a single repo folder
         try {
             PropertyLoader loader = new PropertyLoader(filename);
-            mDatFile = loader.getProperty("mDatFile");
-            mEotFile = loader.getProperty("mEotFile");
             mTempFile = loader.getProperty("mTempFile");
-            mReportFile = loader.getProperty("mReportFile");
-            fDatFile = loader.getProperty("fDatFile");
-            fEotFile = loader.getProperty("fEotFile");
             fTempFile = loader.getProperty("fTempFile");
-            fReportFile = loader.getProperty("fReportFile");
+            repoDir = loader.getProperty("repoDir");
+            mDatFile = repoDir + loader.getProperty("mDatFile");
+            mEotFile = repoDir + loader.getProperty("mEotFile");
+            mReportFile = repoDir + loader.getProperty("mReportFile");
+            fDatFile = repoDir + loader.getProperty("fDatFile");
+            fEotFile = repoDir + loader.getProperty("fEotFile");
+            fReportFile = repoDir + loader.getProperty("fReportFile");
+            brpTempFile = loader.getProperty("brpTempFile");
+            brpDatFile = repoDir + loader.getProperty("brpDatFile");
+            brpEotFile = repoDir + loader.getProperty("brpEotFile");
+            retentionPeriod = loader.getPropertyInt("retentionPeriod");
         } catch (IOException ex) {
             LOGGER.fatal("Unable to load properties from {}", filename);
             System.exit(1);
@@ -126,4 +141,23 @@ public class AppConfig {
         return mReportFile;
     }
     
+    public String getRepoDirectory() {
+        return repoDir;
+    }
+    
+    public int getRetentionPeriod() {
+        return retentionPeriod;
+    }
+    
+    public String getBrpTempFile() {
+        return brpTempFile;
+    }
+    
+    public String getBrpDatFile() {
+        return brpDatFile;
+    }
+    
+    public String getBrpEotFile() {
+        return brpEotFile;
+    }
 }
