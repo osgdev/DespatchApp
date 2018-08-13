@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
@@ -17,12 +19,14 @@ import javafx.scene.input.*;
 import uk.gov.dvla.osg.despatchapp.data.FileManager;
 import uk.gov.dvla.osg.despatchapp.models.JobId;
 import uk.gov.dvla.osg.despatchapp.utilities.BarcodeReader;
-import uk.gov.dvla.osg.despatchapp.utilities.DateFormatUtilsExtra;
+import uk.gov.dvla.osg.despatchapp.utilities.DateUtils;
 import uk.gov.dvla.osg.despatchapp.utilities.FxUtils;
 import uk.gov.dvla.osg.despatchapp.views.ErrMsgDialog;
 
 public class MainFormController {
-
+    
+    static final Logger LOGGER = LogManager.getLogger();
+    
     private static final String EMPTY = "";
     private static final ObservableList<String> SITES = FXCollections.observableArrayList("MORRISTON", "TY FELIN", "BRP");
     private static final int JID_LENGTH = 10;
@@ -53,7 +57,6 @@ public class MainFormController {
             lvContent.setDisable(false);
             FxUtils.enableNode(btnSubmit);
             lblSite.requestFocus();
-            //Site site = siteString.equals("MORRISTON") ? Site.M : Site.F;
             fileManager = new FileManager(siteString);
             removeItemController = new RemoveItemController(fileManager);
             submitFileController = new SubmitFileController(siteString, fileManager);
@@ -63,7 +66,8 @@ public class MainFormController {
                     model.add(JobId.fromString(line));
                 }
             } catch (IOException ex) {
-                ErrMsgDialog.builder("Unable to read from data file", ex.getMessage()).display();
+                LOGGER.fatal("Unable to read from temp data file", ex);
+                ErrMsgDialog.builder("File read error", "Unable to read from data file.").display();
             }
         });
         
@@ -81,7 +85,7 @@ public class MainFormController {
             // Barcode Reader has returned an enter key, check if input is a valid Job ID
             String input = barcodeReader.getBarcode();
             if (barcodeIsJobId(input)) {
-                String timeStamp = DateFormatUtilsExtra.timeStamp("dd/MM/yy hh:mm:ss");
+                String timeStamp = DateUtils.timeStamp("dd/MM/yy hh:mm:ss");
                 JobId jid = JobId.newInstance(input, timeStamp);
                 // Check if ID has already been entered
                 if (model.contains(jid)) {
@@ -93,7 +97,8 @@ public class MainFormController {
                         // All good so add it to the list
                         model.add(jid);
                     } catch (IOException ex) {
-                        ErrMsgDialog.builder("Unable to write to file", ex.getMessage()).display();
+                        LOGGER.fatal("Unable to write to file", ex);
+                        ErrMsgDialog.builder("File write error", "Unable to write to file").display();
                     }
                 }
             } else {
@@ -129,29 +134,28 @@ public class MainFormController {
 
     @FXML
     private void submit() {
-        
-        if (model.size() > 0) {
-            // Add progress indicator to button
-            Platform.runLater(() -> {
-                btnSubmit.setText(EMPTY);
-                btnSubmit.setGraphic(new ProgressIndicator());
-             });
-            // Convert model to list of strings
-            List<String> jobIdList = model.stream().map(jid -> jid.getJobId()).collect(Collectors.toList());
-            boolean success = submitFileController.submit(jobIdList);
-            if (success) {
-                String successMsg = jobIdList.size() == 1 ? "1 item sent to RPD" : jobIdList.size() + " items sent to RPD!";
-                model.clear();
-                FxUtils.displaySuccessMessage(lblError, successMsg);
-            }
-            // Reset button
-            Platform.runLater(() -> {
-                btnSubmit.setText("Submit");
-                btnSubmit.setGraphic(null);
-            });
-        } else {
+        if (model.size() <= 0) {
             FxUtils.displayErrorMessage(lblError, "No items to send.");
+            return;
         }
+        // Add progress indicator to button
+        Platform.runLater(() -> {
+            btnSubmit.setText(EMPTY);
+            btnSubmit.setGraphic(new ProgressIndicator());
+         });
+        // Convert model to list of strings
+        List<String> jobIdList = model.stream().map(jid -> jid.getJobId()).collect(Collectors.toList());
+        boolean success = submitFileController.submit(jobIdList);
+        if (success) {
+            String successMsg = jobIdList.size() == 1 ? "1 item sent to RPD" : jobIdList.size() + " items sent to RPD!";
+            model.clear();
+            FxUtils.displaySuccessMessage(lblError, successMsg);
+        }
+        // Reset button
+        Platform.runLater(() -> {
+            btnSubmit.setText("Submit");
+            btnSubmit.setGraphic(null);
+        });
     }
     
     /**

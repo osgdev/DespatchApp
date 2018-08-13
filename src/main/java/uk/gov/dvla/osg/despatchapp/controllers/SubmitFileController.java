@@ -39,18 +39,17 @@ public class SubmitFileController {
     }
     
     public boolean submit(List<String> list) {
-        if (DEBUG_MODE) {
-            return true;
-        }
-        // Prompt user to log in to RPD
-        LoginGui.newInstance().load();
-        // Did user log in successfully?
-        if (!Session.getInstance().isLoggedIn()) {
-            return false;
-        }
-        // Send files and check that they sent successfully
-        if (!manager.sendDataFiles(list)) {
-            return false;
+        if (!DEBUG_MODE) {
+            // Prompt user to log in to RPD
+            LoginGui.newInstance().load();
+            // Did user log in successfully?
+            if (!Session.getInstance().isLoggedIn()) {
+                return false;
+            }
+            // Send files and check that they sent successfully
+            if (!manager.trySendFiles(list)) {
+                return false;
+            }
         }
         // Write report and display to screen
         Report.writePDFreport(list, reportFile);

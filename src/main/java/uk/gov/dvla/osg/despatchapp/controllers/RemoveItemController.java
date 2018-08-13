@@ -3,6 +3,9 @@ package uk.gov.dvla.osg.despatchapp.controllers;
 import java.io.IOException;
 import java.util.Optional;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ListView;
 import uk.gov.dvla.osg.despatchapp.data.FileManager;
@@ -11,7 +14,9 @@ import uk.gov.dvla.osg.despatchapp.views.ErrMsgDialog;
 import uk.gov.dvla.osg.despatchapp.views.RemoveItemDialog;
 
 public class RemoveItemController {
-
+    
+    static final Logger LOGGER = LogManager.getLogger();
+    
     private FileManager fileManager;
     
     public RemoveItemController(FileManager manager) {
@@ -27,11 +32,11 @@ public class RemoveItemController {
         if (result.isPresent() && result.get() == ButtonType.YES) {
             int index = listView.getSelectionModel().getSelectedIndex();
             listView.getItems().remove(index);
-            //model.remove(index);
             try {
                 fileManager.remove(selectedItem.toString());
             } catch (IOException ex) {
-                ErrMsgDialog.builder("Unable to remove the selected item from data file.", ex.getMessage()).display();
+                LOGGER.fatal("Unable to remove the selected item from data file.", ex);
+                ErrMsgDialog.builder("Remove JobId", "Unable to remove the selected item from data file.").display();
             }
         }
     }

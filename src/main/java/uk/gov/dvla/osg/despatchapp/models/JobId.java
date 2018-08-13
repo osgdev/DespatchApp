@@ -42,6 +42,10 @@ public class JobId {
         this.timeStamp = timeStamp;
     }
 
+    /**
+     * Gets the job id.
+     * @return the job id
+     */
     public String getJobId() {
         return jId;
     }

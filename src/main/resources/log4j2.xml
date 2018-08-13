@@ -7,7 +7,7 @@
 		</Console>
 		<RollingFile name="rollingFile">
 			<FileName>J:/osg/OIs/RPD/DespatchApp.log</FileName>
-			<FilePattern>J:/osg/OIs/RPD/reprint-%d{MM-yyyy}.log</FilePattern>
+			<FilePattern>J:/osg/OIs/RPD/DespatchApp-%d{MM-yyyy}.log</FilePattern>
 			<PatternLayout>
 				<Pattern>%d{dd-MM-yyyy HH:mm:ss} [%-5level] %c{36} - %msg%ex{short}%n</Pattern>
 			</PatternLayout>
@@ -19,7 +19,7 @@
 	</Appenders>
 
 	<Loggers>
-		<Logger name="gov.dvla.osg.despatchapp" level="all">
+		<Logger name="uk.gov.dvla.osg" level="debug">
 			<AppenderRef ref="rollingFile" />
 		</Logger>
 		<Root level="all">

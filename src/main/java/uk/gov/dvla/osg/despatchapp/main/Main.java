@@ -18,7 +18,7 @@ public class Main extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
         Parent root = FXMLLoader.load(getClass().getResource("/FXML/MainScreen.fxml"));
-        primaryStage.setTitle("Despatch App v1.0");
+        primaryStage.setTitle("Despatch App v1.01");
         //primaryStage.getIcons().add(new Image(getClass().getResourceAsStream("/Images/logo.jpg")));
         primaryStage.setResizable(false);
         primaryStage.setScene(new Scene(root));

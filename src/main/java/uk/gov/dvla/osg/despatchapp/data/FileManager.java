@@ -4,21 +4,25 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import uk.gov.dvla.osg.despatchapp.main.AppConfig;
-import uk.gov.dvla.osg.despatchapp.utilities.DateFormatUtilsExtra;
+import uk.gov.dvla.osg.despatchapp.utilities.DateUtils;
 import uk.gov.dvla.osg.despatchapp.views.ErrMsgDialog;
 import uk.gov.dvla.osg.rpd.web.client.SubmitJobClient;
 import uk.gov.dvla.osg.rpd.web.config.Session;
-import uk.gov.dvla.osg.rpd.web.error.RpdErrorResponse;
 
 public class FileManager {
+    
+    static final Logger LOGGER = LogManager.getLogger();
     
     final static Charset ENCODING = StandardCharsets.UTF_8;
 
@@ -29,7 +33,7 @@ public class FileManager {
         this.site = site.toString().toLowerCase();
         
         AppConfig config = AppConfig.getInstance();
-        String timeStamp = DateFormatUtilsExtra.timeStamp("ddMMyyyy_HHmmss");
+        String timeStamp = DateUtils.timeStamp("ddMMyyyy_HHmmss");
         
         switch (site) {
         case "TY FELIN":
@@ -42,7 +46,6 @@ public class FileManager {
             eotFile = new File(config.getmEotFile() + timeStamp + ".EOT");
             tempFile = new File(config.getmTempFile());
             break;
-
         case "BRP":
             datFile = new File(config.getBrpDatFile() + timeStamp + ".DAT");
             eotFile = new File(config.getBrpEotFile() + timeStamp + ".EOT");
@@ -58,10 +61,11 @@ public class FileManager {
      * @throws IOException Signals that an I/O exception has occurred.
      */
     public List<String> read() throws IOException {
-        if (tempFile.exists()) {
-            return FileUtils.readLines(tempFile, ENCODING);
+        if (!tempFile.exists()) {
+            return new ArrayList<String>();
         }
-        return new ArrayList<String>();
+        
+        return FileUtils.readLines(tempFile, ENCODING);
     }
     
     /**
@@ -95,26 +99,33 @@ public class FileManager {
      *
      * @param list the list of Job IDs
      */
-    public boolean sendDataFiles(List<String> list) {
+    public boolean trySendFiles(List<String> list) {
         // Create DAT file in temp folder
         try {
             FileUtils.writeLines(datFile, list, false);
         } catch (IOException ex) {
-            ErrMsgDialog.builder("Unable to save DAT file.", ex.getMessage()).display();
+            LOGGER.fatal("Unable to save DAT file.", ex);
+            ErrMsgDialog.builder("File save error.", "Unable to save DAT file")
+                .action(MessageFormat.format("Please check you have write access to {}",  AppConfig.getInstance().getRepoDirectory()))
+                .display();
+            return false;
         }
         // Send DAT files to RPD via web client
-        if (!sendToRpd(datFile)) {
+        if (!trySendToRpd(datFile)) {
             return false;
         }
         // Create matching EOT file
-        List<String> eotContent = Arrays.asList("RUNVOL=" + list.size(),"LOCATION=" + site, "USER=" + Session.getInstance().getUserName());
+        List<String> eotContent = Arrays.asList("RUNVOL=" + list.size(),"USER=" + Session.getInstance().getUserName());
+        // Write EOT file to temp directory
         try {
             FileUtils.writeLines(eotFile, eotContent, false);
         } catch (IOException ex) {
-            ErrMsgDialog.builder("Unable to save EOT file", ex.getMessage()).display();
+            LOGGER.fatal("Unable to save EOT file.", ex);
+            ErrMsgDialog.builder("File save error.", "Unable to save EOT file").display();
+            return false;
         }
         // Send EOT files to RPD via web client
-        if (!sendToRpd(eotFile)) {
+        if (!trySendToRpd(eotFile)) {
             return false;
         }
         // Remove the temp file
@@ -127,12 +138,12 @@ public class FileManager {
      * @param file the file
      * @return true, if successful
      */
-    private boolean sendToRpd(File file) {
+    private boolean trySendToRpd(File file) {
         SubmitJobClient sjc = SubmitJobClient.getInstance();
-        boolean success = sjc.submit(file);
+        boolean success = sjc.trySubmit(file);
         if (!success) {
-            RpdErrorResponse rpdError = sjc.getErrorResponse();
-            ErrMsgDialog.builder(rpdError.getCode(), rpdError.getMessage()).action(rpdError.getAction()).display();
+            LOGGER.fatal(sjc.getErrorResponse().toString());
+            ErrMsgDialog.builder("File submission error", "Your data was not sent to RPD. Please try again.").display();
         }
         return success;
     }

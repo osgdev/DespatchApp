@@ -9,7 +9,7 @@ import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.Paragraph;
 import com.itextpdf.text.pdf.PdfWriter;
 
-import uk.gov.dvla.osg.despatchapp.utilities.DateFormatUtilsExtra;
+import uk.gov.dvla.osg.despatchapp.utilities.DateUtils;
 import uk.gov.dvla.osg.despatchapp.views.ErrMsgDialog;
 import uk.gov.dvla.osg.rpd.web.config.Session;
 
@@ -55,7 +55,7 @@ public class Report {
         	// all text is appended to a single paragraph
         	Paragraph p = new Paragraph();
         	// generate timestamp
-        	String timeStamp = DateFormatUtilsExtra.timeStamp("dd/MM/yyyy @ HH:mm:ss");
+        	String timeStamp = DateUtils.timeStamp("dd/MM/yyyy @ HH:mm:ss");
         	// add the report headng
         	p.add("Despatch Report");
         	p.add("\n\nSubmitted on " + timeStamp + " by " + Session.getInstance().getUserName() + ":\n\n");
@@ -99,7 +99,7 @@ public class Report {
      * @return the file name
      */
     private static String getFileName(String fileName) {
-        String timeStamp = DateFormatUtilsExtra.timeStamp("ddMMyyyy_HHmmss");
+        String timeStamp = DateUtils.timeStamp("ddMMyyyy_HHmmss");
         return fileName + Session.getInstance().getUserName() + "." + timeStamp + ".pdf";
     }
 }
