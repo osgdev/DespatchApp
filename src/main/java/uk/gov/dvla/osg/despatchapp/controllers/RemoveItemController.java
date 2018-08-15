@@ -17,27 +17,31 @@ public class RemoveItemController {
     
     static final Logger LOGGER = LogManager.getLogger();
     
+
     private FileManager fileManager;
-    
+
     public RemoveItemController(FileManager manager) {
         this.fileManager = manager;
     }
-    
+
     public void remove(ListView listView) {
         JobId selectedItem = (JobId) listView.getSelectionModel().getSelectedItem();
         String id = selectedItem.getJobId();
         // display dialog and wait for a button to be clicked
         Optional<ButtonType> result = RemoveItemDialog.newInstance(id).display();
-        // logout if user clicks the OK button
-        if (result.isPresent() && result.get() == ButtonType.YES) {
-            int index = listView.getSelectionModel().getSelectedIndex();
-            listView.getItems().remove(index);
-            try {
-                fileManager.remove(selectedItem.toString());
-            } catch (IOException ex) {
-                LOGGER.fatal("Unable to remove the selected item from data file.", ex);
-                ErrMsgDialog.builder("Remove JobId", "Unable to remove the selected item from data file.").display();
-            }
+        // Exit if user cancelled
+        if (!result.isPresent() || result.get() != ButtonType.YES) {
+            return;
+        }
+        // remove item from list
+        int index = listView.getSelectionModel().getSelectedIndex();
+        listView.getItems().remove(index);
+        // remove line from temp file
+        try {
+            fileManager.remove(selectedItem.toString());
+        } catch (IOException ex) {
+            LOGGER.fatal("Unable to remove the selected item from data file.", ex);
+            ErrMsgDialog.builder("Remove JobId", "Unable to remove the selected item from data file.").display();
         }
     }
 

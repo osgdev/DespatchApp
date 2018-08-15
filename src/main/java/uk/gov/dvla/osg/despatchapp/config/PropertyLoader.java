@@ -1,8 +1,9 @@
-package uk.gov.dvla.osg.despatchapp.main;
+package uk.gov.dvla.osg.despatchapp.config;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.text.MessageFormat;
 import java.util.Properties;
 
 import org.apache.commons.lang3.StringUtils;
@@ -14,7 +15,7 @@ import org.apache.logging.log4j.Logger;
  */
 public class PropertyLoader {
     
-    private static final Logger LOGGER = LogManager.getLogger();
+    static final Logger LOGGER = LogManager.getLogger();
     private static final Properties properties = new Properties();
     
     /**
@@ -37,10 +38,11 @@ public class PropertyLoader {
      * @throws RuntimeException if the key is not present in the configuration file
      */
     public String getProperty(String key) throws RuntimeException {
-        if (properties.containsKey(key)) {
-            return properties.getProperty(key);
+        if (!properties.containsKey(key)) {
+            throw new RuntimeException(MessageFormat.format("Unable to load property [{0}] from file.", key));
         }
-        throw new RuntimeException("Unable to load property ["+key+"] from file.");
+        
+        return properties.getProperty(key);
     }
     
     /**
@@ -51,15 +53,15 @@ public class PropertyLoader {
      * @throws RuntimeException if the key is not present in the configuration file or is not a valid integer
      */
     public int getPropertyInt(String key) throws RuntimeException {
-        if (properties.containsKey(key)) {
-            String value = properties.getProperty(key);
-            if (StringUtils.isNumeric(value)) {
-                return Integer.parseInt(value);
-            }
-            LOGGER.fatal("Value [{}] is not valid for the property [{}].", value, key);
-            throw new RuntimeException("Value ["+value+"] is not valid for the property ["+key+"].");
+        if (!properties.containsKey(key)) {
+            throw new RuntimeException(MessageFormat.format("Unable to load property [{0}] from Production Configuration file.", key));
         }
-        LOGGER.fatal("Unable to load property [{}] from Production Configuration file.", key);
-        throw new RuntimeException("Unable to load property ["+key+"] from Production Configuration file.");
+        
+        String value = properties.getProperty(key);
+        if (!StringUtils.isNumeric(value)) {
+            throw new RuntimeException(MessageFormat.format("Value [{0}] is not valid for the property [{1}].", value, key));
+        }
+        
+        return Integer.parseInt(value);
     }
 }

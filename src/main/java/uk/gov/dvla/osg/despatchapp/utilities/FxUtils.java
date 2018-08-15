@@ -1,8 +1,17 @@
 package uk.gov.dvla.osg.despatchapp.utilities;
 
+import java.util.concurrent.CountDownLatch;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import javafx.animation.FadeTransition;
+import javafx.application.Platform;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListView;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.paint.Paint;
 import javafx.util.Duration;
 
@@ -10,7 +19,7 @@ import javafx.util.Duration;
  * Utility Class for manipulating JavaFx nodes.
  */
 public class FxUtils {
-
+    static final Logger LOGGER = LogManager.getLogger();
     /**
      * Disable the node by setting its visibility and managed properties to false.
      * @param node the node
@@ -80,4 +89,44 @@ public class FxUtils {
         enableNode(newNode);
     }
    
+    public static boolean listViewIsEmpty(ListView listView) {
+        return listView.getSelectionModel().getSelectedIndex() == -1;
+    }
+
+    public static boolean deleteKeyPressed(KeyEvent event) {
+        return event.getCode() == KeyCode.BACK_SPACE || event.getCode() == KeyCode.DELETE;
+    }
+    /**
+     * Runs the specified {@link Runnable} on the
+     * JavaFX application thread and waits for completion.
+     *
+     * @param action the {@link Runnable} to run
+     * @throws NullPointerException if {@code action} is {@code null}
+     */
+    public static void runAndWait(Runnable action) {
+        if (action == null)
+            throw new NullPointerException("action");
+
+        // run synchronously on JavaFX thread
+        if (Platform.isFxApplicationThread()) {
+            action.run();
+            return;
+        }
+
+        // queue on JavaFX thread and wait for completion
+        final CountDownLatch doneLatch = new CountDownLatch(1);
+        Platform.runLater(() -> {
+            try {
+                action.run();
+            } finally {
+                doneLatch.countDown();
+            }
+        });
+
+        try {
+            doneLatch.await();
+        } catch (InterruptedException e) {
+            LOGGER.fatal(e.getMessage());
+        }
+    }
 }

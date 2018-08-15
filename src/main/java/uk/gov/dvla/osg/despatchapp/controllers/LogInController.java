@@ -31,11 +31,7 @@ public class LogInController {
      * is authenticated, else the RPD error message is displayed.
      */
     public void btnLoginClicked() {
-        // bypass login while testing
-        if (DEBUG_MODE) {
-            return;
-        }
-        
+
         Session.getInstance().setUserName(nameField.getText().trim());
         Session.getInstance().setPassword(passwordField.getText().trim());
 
@@ -46,16 +42,23 @@ public class LogInController {
         passwordField.setDisable(true);
 
         final LoginClient login = LoginClient.getInstance(NetworkConfig.getInstance());
-        
+
         // Login performed on background thread to prevent GUI freezing
         new Thread(() -> {
-            Optional<String> token  = login.getSessionToken(Session.getInstance().getUserName(), Session.getInstance().getPassword());
+            
+            // bypass login while testing
+            if (DEBUG_MODE) {
+                return;
+            }
+           
+            Optional<String> token = login.getSessionToken(Session.getInstance().getUserName(), Session.getInstance().getPassword());
+     
             // if token wasn't retrieved & not in debug mode, display error dialog
             if (!token.isPresent()) {
                 Platform.runLater(() -> {
                     RpdErrorResponse error = login.getErrorResponse();
                     ErrMsgDialog.builder(error.getCode(), error.getMessage())
-                                .action(error.getAction()).display();
+                        .action(error.getAction()).display();
                     // cleanup fields
                     lblMessage.setText("");
                     passwordField.setText("");
@@ -65,10 +68,7 @@ public class LogInController {
                 });
             } else {
                 Session.getInstance().setToken(token.get());
-                
-                Platform.runLater(() -> {
-                    ((Stage) btnLogin.getScene().getWindow()).close();
-                });
+                Platform.runLater(() -> ((Stage) btnLogin.getScene().getWindow()).close());
             }
         }).start();
     }

@@ -3,6 +3,8 @@ package uk.gov.dvla.osg.despatchapp.models;
 import java.util.Arrays;
 import java.util.List;
 
+import uk.gov.dvla.osg.despatchapp.utilities.DateUtils;
+
 public class JobId {
     
     // Ten Digit RPD Job ID
@@ -16,7 +18,8 @@ public class JobId {
      * @param timeStamp the time stamp
      * @return the JobId
      */
-    public static JobId newInstance(String jId, String timeStamp) {
+    public static JobId newInstance(String jId) {
+        String timeStamp = DateUtils.timeStamp("dd/MM/yy HH:mm:ss");
         return new JobId(jId, timeStamp);
     }
 
@@ -42,10 +45,6 @@ public class JobId {
         this.timeStamp = timeStamp;
     }
 
-    /**
-     * Gets the job id.
-     * @return the job id
-     */
     public String getJobId() {
         return jId;
     }
@@ -67,7 +66,8 @@ public class JobId {
         return result;
     }
 
-    /* Objects are equal if they have the same Job ID, ignoring the timestamp.
+    /* 
+     * Objects are equal if they have the same Job ID, ignoring the timestamp.
      * Used to avoid duplicate ID's being created.
      * (non-Javadoc)
      * @see java.lang.Object#equals(java.lang.Object)
