@@ -41,7 +41,7 @@ public final class SiteListenerImplementation implements ChangeListener {
         controller.removeItemController = new RemoveItemController(fileManager);
         controller.submitFileController = new SubmitFileController(config, fileManager);
         
-        if (!fileManager.hasRepoAccess()) {
+        if (!fileManager.userHasRepoAccess()) {
             LOGGER.error("Unable to write to the repository directory");
             String repoDir = config.repository();
             ErrMsgDialog.builder("Folder Permissions", "Please check you have read,write access to " + repoDir).display();

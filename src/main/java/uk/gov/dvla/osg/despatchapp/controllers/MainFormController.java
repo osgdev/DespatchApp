@@ -28,7 +28,7 @@ public class MainFormController {
     static final Logger LOGGER = LogManager.getLogger();
 
     private static final String EMPTY = "";
-    private static final ObservableList<String> SITES = FXCollections.observableArrayList("MORRISTON", "TY FELIN", "BRP");
+    private static final ObservableList<String> SITES = FXCollections.observableArrayList("MORRISTON", "TY FELIN");
     private static final int JID_LENGTH = 10;
 
     @FXML ChoiceBox cbSite;

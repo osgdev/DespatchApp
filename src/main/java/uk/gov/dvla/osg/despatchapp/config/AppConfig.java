@@ -101,6 +101,7 @@ public class AppConfig {
             brpEotFile = repoDir + loader.getProperty("brpEotFile");
             brpReportFile = repoDir + loader.getProperty("brpReportFile");
         } catch (IOException ex) {
+            // Unknown exception has occurred
             LOGGER.fatal("Unable to load properties from {}", filename);
             System.exit(1);
         } catch (RuntimeException ex) {

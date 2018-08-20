@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -27,12 +28,15 @@ public class FileManager {
     final static Charset ENCODING = StandardCharsets.UTF_8;
     final static String NEWLINE = "\n";
 
-    File datFile, eotFile, tempFile;
-    String site;
+    private File datFile, eotFile, tempFile;
 
+    /**
+     * Instantiates a new file manager.
+     *
+     * @param config the config for the selected site
+     */
     public FileManager(SiteConfig config) {
         tempFile = new File(config.tempFile());
-        site = config.site();
 
         String timeStamp = DateUtils.timeStamp("ddMMyyyy_HHmmss");
         datFile = new File(config.datFile() + timeStamp + ".DAT");
@@ -126,7 +130,10 @@ public class FileManager {
         }
         
         // Create matching EOT file
-        List<String> eotContent = Arrays.asList("RUNVOL=" + list.size(), "USER=" + Session.getInstance().getUserName());
+        String runDate = DateUtils.timeStamp("ddMMyyyy");
+        
+        List<String> eotContent = Arrays.asList("RUNVOL=" + list.size(), "USER=" + Session.getInstance().getUserName(), 
+                "RUNDATE=" + runDate);
         
         try {
             FileUtils.writeLines(eotFile, eotContent, false);
@@ -139,16 +146,16 @@ public class FileManager {
         if (!sendToRpd(eotFile)) {
             return false;
         }
-
+        
+        // Remove and rebuild the temp file to clear its contents
         try {
-            // Temporarily unlock the file
-            unlockTempFile();
-            // Remove contents from the temp file
-            FileUtils.writeStringToFile(tempFile, "", ENCODING);
-            // Re-apply lock on file
+            FileUtils.deleteQuietly(tempFile);
+            // Create file
+            FileUtils.touch(tempFile);
+            // Apply lock on file
             lockTempFile();
         } catch (IOException ex) {
-            LOGGER.error("Unable to delete contents of the site temp file {}", tempFile);
+            LOGGER.error("Unable to delete contents of the site temp file [{}], {}", tempFile, ex.getMessage());
             ErrMsgDialog.builder("Send Data Files", "Unable to clear the site Temp file").display();
             return false;
         }
@@ -173,16 +180,33 @@ public class FileManager {
         return true;
     }
 
+    /**
+     * Sets the ReadOnly flag to lock the file.
+     */
     private void lockTempFile() {
         tempFile.setReadOnly();
     }
 
+    /**
+     * Unlocks the temp file by removing the ReadOnly flag
+     */
     public void unlockTempFile() {
         tempFile.setWritable(true);
     }
 
-    public boolean hasRepoAccess() {
-        String repo = datFile.getParent() + "\\";
+    /**
+     * A new user may be denied access to the QA repository folder. The only way
+     * to check that they can write to the repo folder is by attempting to write
+     * to the folder and catching any exception that occurs.
+     * 
+     * Checking isReadOnly() on the file checks only the flag on the file and cannot 
+     * check permissions on the directory.
+     *
+     * @return true, if successful
+     */
+    public boolean userHasRepoAccess() {
+        
+        String repo = FilenameUtils.getPath(datFile.toString());
         String timeStamp = DateUtils.timeStamp("ddMMyyHHmmss");
         File testFile = new File(repo + timeStamp + ".tmp");
         

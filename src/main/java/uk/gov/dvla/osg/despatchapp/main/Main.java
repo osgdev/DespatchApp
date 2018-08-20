@@ -25,11 +25,12 @@ import uk.gov.dvla.osg.rpd.web.config.NetworkConfig;
  *1.03 Added application credentials to submit method in web client
  *1.04 Fixed issue with time being displayed as 12hr
  *1.05 Added file locking to ensure only one open application per site
+ *1.06 Added checking for read/write access to Temp and Repo directories, plus BRP site removed
+ *1.07 Added RunDate to EOT
  ************************************************
  */
 public class Main extends Application {
     
-    /** The Constant LOGGER. */
     static final Logger LOGGER = LogManager.getLogger();
     
     /* (non-Javadoc)
@@ -39,7 +40,7 @@ public class Main extends Application {
     public void start(Stage primaryStage) throws Exception {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/FXML/MainScreen.fxml"));
         Parent root = loader.load();
-        primaryStage.setTitle("Despatch App v1.05");
+        primaryStage.setTitle("Despatch App v1.07");
         //primaryStage.getIcons().add(new Image(getClass().getResourceAsStream("/Images/logo.jpg")));
         primaryStage.setResizable(false);
         primaryStage.setScene(new Scene(root));
