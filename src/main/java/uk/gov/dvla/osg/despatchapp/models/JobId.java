@@ -1,11 +1,16 @@
 package uk.gov.dvla.osg.despatchapp.models;
 
+import java.text.MessageFormat;
 import java.util.Arrays;
 import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
 
 import uk.gov.dvla.osg.despatchapp.utilities.DateUtils;
 
 public class JobId {
+    
+    private static final int JID_LENGTH = 10;
     
     // Ten Digit RPD Job ID
     private String jId;
@@ -19,6 +24,9 @@ public class JobId {
      * @return the JobId
      */
     public static JobId newInstance(String jId) {
+        if (!isValid(jId)) {
+            throw new IllegalArgumentException(MessageFormat.format("Job ID is not valid - [{0}]", jId));
+        }
         String timeStamp = DateUtils.timeStamp("dd/MM/yy HH:mm:ss");
         return new JobId(jId, timeStamp);
     }
@@ -47,6 +55,16 @@ public class JobId {
 
     public String getJobId() {
         return jId;
+    }
+    
+    /**
+     * Validates if the entered barcode is a valid ten-digit RPD job id.
+     * 
+     * @param barcode the barcode to validate
+     * @return true, if barcode is a valid ten-digit Job ID
+     */
+    public static boolean isValid(String barcode) {
+        return StringUtils.isNumeric(barcode) && barcode.length() == JID_LENGTH;
     }
     
     /* 

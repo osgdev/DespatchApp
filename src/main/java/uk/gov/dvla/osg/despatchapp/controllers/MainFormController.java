@@ -1,10 +1,11 @@
 package uk.gov.dvla.osg.despatchapp.controllers;
 
 import java.io.IOException;
+import java.text.MessageFormat;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -22,6 +23,7 @@ import uk.gov.dvla.osg.despatchapp.models.JobId;
 import uk.gov.dvla.osg.despatchapp.utilities.BarcodeReader;
 import uk.gov.dvla.osg.despatchapp.utilities.FxUtils;
 import uk.gov.dvla.osg.despatchapp.views.ErrMsgDialog;
+import uk.gov.dvla.osg.despatchapp.views.LoginGui;
 
 public class MainFormController {
 
@@ -29,17 +31,16 @@ public class MainFormController {
 
     private static final String EMPTY = "";
     private static final ObservableList<String> SITES = FXCollections.observableArrayList("MORRISTON", "TY FELIN");
-    private static final int JID_LENGTH = 10;
 
     @FXML ChoiceBox cbSite;
     @FXML ListView lvContent;
-    @FXML private Label lblError;
+    @FXML Label lblError;
     @FXML Label lblSite;
-    @FXML private Label lblItems;
+    @FXML Label lblItems;
     @FXML Button btnSubmit;
 
     ObservableList<JobId> model = FXCollections.observableArrayList();
-    private BarcodeReader barcodeReader = new BarcodeReader();
+    BarcodeReader barcodeReader = new BarcodeReader();
     RemoveItemController removeItemController;
     SubmitFileController submitFileController;
     FileManager fileManager;
@@ -56,6 +57,13 @@ public class MainFormController {
         lblItems.textProperty().bind(Bindings.concat("No. of items: ", Bindings.size((lvContent.getItems())).asString()));
     }
 
+    /**
+     * Process key press events at the form level. No keyboard input is permitted. 
+     * The ListView is populated from input by a barcode scanner only. All valid
+     * input is persisted to a temp file when scanned.
+     *
+     * @param event the event
+     */
     @FXML
     private void keyTyped(KeyEvent event) {
         // Do nothing until a site has been selected
@@ -69,7 +77,7 @@ public class MainFormController {
         }
         // Check if input is a valid Job ID
         String input = barcodeReader.getBarcode();
-        if (!barcodeIsJobId(input)) {
+        if (!JobId.isValid(input)) {
             FxUtils.displayErrorMessage(lblError, "Whoops that wasn't a Job ID!");
             return;
         }
@@ -85,19 +93,28 @@ public class MainFormController {
             fileManager.append(jid.toString());
         } catch (IOException ex) {
             LOGGER.error(ex);
-            ErrMsgDialog.builder("File write error", "Unable to write to file").display();
+            
+            ErrMsgDialog.builder("File write error", "Unable to write to file")
+                        .action(MessageFormat.format("Please request read/write access to [{0}]", fileManager.getTempFileDirectory()))
+                        .display();
             return;
         }
         // All good so add it to the list
         model.add(jid);
     }
 
+    /**
+     * Removes an item from the ListView if either the Delete or
+     * Backspace keys are pressed.
+     *
+     * @param event the event
+     */
     @FXML
     private void lvKeyPressed(KeyEvent event) {
-        if (!FxUtils.deleteKeyPressed(event) || FxUtils.listViewIsEmpty(lvContent)) {
+        if (!FxUtils.deleteKeyPressed(event) || model.isEmpty()) {
             return;
         }
-        
+
         removeItemController.remove(lvContent);
     }
 
@@ -109,15 +126,18 @@ public class MainFormController {
      */
     @FXML
     private void mousePressed(MouseEvent e) {
-        // Check right mouse button clicked
         if (!model.isEmpty() && e.getButton() == MouseButton.SECONDARY) {
             removeItemController.remove(lvContent);
         }
     }
 
+    /**
+     * Click event for the Submit button.
+     */
     @FXML
     private void submit() {
-        if (model.size() <= 0) {
+        // Display message if no items were added
+        if (model.isEmpty()) {
             FxUtils.displayErrorMessage(lblError, "No items to send.");
             return;
         }
@@ -126,38 +146,43 @@ public class MainFormController {
             btnSubmit.setText(EMPTY);
             btnSubmit.setGraphic(new ProgressIndicator());
         });
-        // Convert model to list of strings
-        List<String> jobIdList = model.stream().map(jid -> jid.getJobId()).collect(Collectors.toList());
-        // Send the data to RPD
-        if (!submitFileController.login().trySubmit(jobIdList)) {
-            return;
+        
+        // Queue on JavaFX thread and wait for completion
+        final CountDownLatch doneLatch = new CountDownLatch(1);
+            try {
+                // Login user
+                LoginGui.newInstance().load();
+                // Convert model to list of strings
+                List<String> jobIdList = model.stream().map(JobId::getJobId).collect(Collectors.toList());
+                // Send the data to RPD
+                if (submitFileController.trySubmit(jobIdList)) {
+                    String successMsg = jobIdList.size() == 1 ? "1 item sent to RPD" : jobIdList.size() + " items sent to RPD!";
+                    FxUtils.displaySuccessMessage(lblError, successMsg);
+                    model.clear();
+                } else {
+                    FxUtils.displayErrorMessage(lblError, "Unable to send files to RPD!");
+                }
+            } finally {
+                doneLatch.countDown();
+            }
+
+        try {
+            doneLatch.await();
+        } catch (InterruptedException e) {
+            LOGGER.fatal(e.getMessage());
         }
-        String successMsg = jobIdList.size() == 1 ? "1 item sent to RPD" : jobIdList.size() + " items sent to RPD!";
-        FxUtils.displaySuccessMessage(lblError, successMsg);
-        model.clear();
+
         // Reset button
-        Platform.runLater(() -> {
-            btnSubmit.setText("Submit");
-            btnSubmit.setGraphic(null);
-        });
+        btnSubmit.setText("Submit");
+        btnSubmit.setGraphic(null);
     }
 
     /**
-     * Release lock on application when application terminates.
-     * Called from the OnClose event set in the Main class.
+     * Release lock on application when application terminates. Called from the
+     * OnClose event set in the Main class.
      */
     public void shutdown() {
         fileManager.unlockTempFile();
-    }
-
-    /**
-     * Validates if the entered barcode is a valid ten-digit RPD job id.
-     * 
-     * @param barcode the barcode to validate
-     * @return true, if barcode is a valid ten-digit Job ID
-     */
-    private boolean barcodeIsJobId(String barcode) {
-        return StringUtils.isNumeric(barcode) && barcode.length() == JID_LENGTH;
     }
 
 }

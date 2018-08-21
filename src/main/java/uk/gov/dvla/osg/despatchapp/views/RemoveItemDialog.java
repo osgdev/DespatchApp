@@ -1,5 +1,6 @@
 package uk.gov.dvla.osg.despatchapp.views;
 
+import java.text.MessageFormat;
 import java.util.Optional;
 
 import javafx.scene.control.ButtonType;
@@ -19,10 +20,15 @@ public class RemoveItemDialog {
         dialog.setTitle("Delete Selected Item");
         DialogPane dialogPane = dialog.getDialogPane();
         dialogPane.getButtonTypes().addAll(ButtonType.YES, ButtonType.NO);
-        dialogPane.setContentText("Do you want to remove " + str + "?");
+        dialogPane.setContentText(MessageFormat.format("Do you want to remove '{0}'?", str));
     }
     
-    public Optional<ButtonType> display() {
+    /**
+     * Shows the dialog and waits for the user response (in other words, brings up a blocking dialog, with the returned value the users input).
+     *
+     * @return An Optional that contains the result.
+     */
+    public Optional<ButtonType> displayAndWait() {
         return dialog.showAndWait();
     }
     

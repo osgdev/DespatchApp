@@ -77,11 +77,20 @@ public class AppConfig {
      * Instantiates a new network config from the fields in the property file.
      */
     private AppConfig() {
-        // PropertyLoader loads the properties from the configuration file and validates
-        // each entry. Temp files include the full path name, other files are stored together in a
-        // single repo folder
+       /* Temp files include the full path name, other files are stored 
+        * together in a single repo folder.
+        */
+        PropertyLoader loader = null;
+        
         try {
-            PropertyLoader loader = new PropertyLoader(filename);
+            loader = new PropertyLoader(filename);
+        } catch (IOException ex) {
+            // Unknown exception has occurred
+            LOGGER.fatal("Unable to load properties from {}", filename);
+            throw new RuntimeException(ex.getMessage());
+        }
+        
+        try {
             // GENERAL PROPERTIES
             repoDir = loader.getProperty("repoDir");
             retentionPeriod = loader.getPropertyInt("retentionPeriod");
@@ -100,17 +109,17 @@ public class AppConfig {
             brpDatFile = repoDir + loader.getProperty("brpDatFile");
             brpEotFile = repoDir + loader.getProperty("brpEotFile");
             brpReportFile = repoDir + loader.getProperty("brpReportFile");
-        } catch (IOException ex) {
-            // Unknown exception has occurred
-            LOGGER.fatal("Unable to load properties from {}", filename);
-            System.exit(1);
         } catch (RuntimeException ex) {
             // Property value is missing from the file
-            LOGGER.fatal("Unable to load properties from {}", filename);
-            System.exit(1);
+            throw ex;
         }
     }
 
+    /**
+     * Morriston site configuration.
+     *
+     * @return the site configuration for Morriston
+     */
     public SiteConfig morriston() {
         return SiteConfig.builder()
                          .SiteName("Morriston")
@@ -123,6 +132,11 @@ public class AppConfig {
                          .build();
     }
 
+    /**
+     * Ty Felin site configuration.
+     *
+     * @return the site configuration for Ty Felin
+     */
     public SiteConfig tyFelin() {
         return SiteConfig.builder()
                          .SiteName("Ty Felin")

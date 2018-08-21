@@ -17,18 +17,17 @@ import uk.gov.dvla.osg.despatchapp.utilities.FxUtils;
 import uk.gov.dvla.osg.despatchapp.views.ErrMsgDialog;
 import uk.gov.dvla.osg.rpd.web.config.NetworkConfig;
 
-/**
- *************** REVISION HISTORY ***************
- *1.00 Initial Version
- *1.01 Added full RPD Web Client functionality
- *1.02 Fixed issue with FileDeleter retention period
- *1.03 Added application credentials to submit method in web client
- *1.04 Fixed issue with time being displayed as 12hr
- *1.05 Added file locking to ensure only one open application per site
- *1.06 Added checking for read/write access to Temp and Repo directories, plus BRP site removed
- *1.07 Added RunDate to EOT
- ************************************************
- */
+/**************** REVISION HISTORY ***************
+  1.00 Initial Version
+  1.01 Added full RPD Web Client functionality
+  1.02 Fixed issue with FileDeleter retention period
+  1.03 Added application credentials to submit method in web client
+  1.04 Fixed issue with time being displayed as 12hr
+  1.05 Added file locking to ensure only one open application per site
+  1.06 Added checking for read/write access to Temp and Repo directories, plus BRP site removed
+  1.07 Added RunDate to EOT
+  1.08 Fixed issue with RPD Login dialog stalling
+ ************************************************/
 public class Main extends Application {
     
     static final Logger LOGGER = LogManager.getLogger();
@@ -40,7 +39,7 @@ public class Main extends Application {
     public void start(Stage primaryStage) throws Exception {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/FXML/MainScreen.fxml"));
         Parent root = loader.load();
-        primaryStage.setTitle("Despatch App v1.07");
+        primaryStage.setTitle("Despatch App v1.08");
         //primaryStage.getIcons().add(new Image(getClass().getResourceAsStream("/Images/logo.jpg")));
         primaryStage.setResizable(false);
         primaryStage.setScene(new Scene(root));

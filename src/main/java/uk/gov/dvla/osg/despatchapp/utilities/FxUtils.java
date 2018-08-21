@@ -104,9 +104,10 @@ public class FxUtils {
      * @throws NullPointerException if {@code action} is {@code null}
      */
     public static void runAndWait(Runnable action) {
-        if (action == null)
+        if (action == null) {
             throw new NullPointerException("action");
-
+        }
+        
         // run synchronously on JavaFX thread
         if (Platform.isFxApplicationThread()) {
             action.run();

@@ -26,7 +26,7 @@ public class FileManager {
     static final Logger LOGGER = LogManager.getLogger();
 
     final static Charset ENCODING = StandardCharsets.UTF_8;
-    final static String NEWLINE = "\n";
+    final static String NEWLINE = "\n"; //Ensures NewLine characters are Unix compatible
 
     private File datFile, eotFile, tempFile;
 
@@ -194,6 +194,15 @@ public class FileManager {
         tempFile.setWritable(true);
     }
 
+    /**
+     * Gets the temp file directory.
+     *
+     * @return the temp file directory
+     */
+    public String getTempFileDirectory() {
+        return FilenameUtils.getFullPath(tempFile.toString());
+    }
+    
     /**
      * A new user may be denied access to the QA repository folder. The only way
      * to check that they can write to the repo folder is by attempting to write

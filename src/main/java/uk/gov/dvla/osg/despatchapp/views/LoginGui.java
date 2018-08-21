@@ -17,12 +17,20 @@ public class LoginGui {
     static final Logger LOGGER = LogManager.getLogger();
     
     
+    /**
+     * New instance.
+     *
+     * @return the Login GUI
+     */
     public static LoginGui newInstance() {
         return new LoginGui();
     }
     
     private LoginGui() {}
     
+    /**
+     * Load and show the Login Dialog.
+     */
     public void load() {
         try {
             Parent root = FXMLLoader.load(getClass().getResource("/FXML/LoginGui.fxml"));

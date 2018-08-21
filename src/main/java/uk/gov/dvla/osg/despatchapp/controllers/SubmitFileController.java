@@ -10,7 +10,6 @@ import uk.gov.dvla.osg.despatchapp.config.SiteConfig;
 import uk.gov.dvla.osg.despatchapp.data.FileManager;
 import uk.gov.dvla.osg.despatchapp.report.Report;
 import uk.gov.dvla.osg.despatchapp.utilities.FileDeleter;
-import uk.gov.dvla.osg.despatchapp.views.LoginGui;
 import uk.gov.dvla.osg.rpd.web.config.Session;
 
 public class SubmitFileController {
@@ -29,25 +28,26 @@ public class SubmitFileController {
         repository = config.repository();
         retentionPeriod = config.retentionPeriod();
     }
-
-    public SubmitFileController login() {
-        // Prompt user to log in to RPD
-        LoginGui.newInstance().load();
-        return this;
-    }
     
+    /**
+     * Send DAT & EOT files to the RPD hot folder. A PDF report of the submitted data will be 
+     * displayed. DAT, EOT & PDF files older than the retention period will be removed.
+     *
+     * @param list the list of Job ID's (without a timestamp)
+     * @return true, if successfully sent to RPD
+     */
     public boolean trySubmit(List<String> list) {
-        if (DEBUG_MODE) {
-            return true;
+        if (!DEBUG_MODE) {
+            // Did user log in successfully?
+            if (!Session.getInstance().isLoggedIn()) {
+                return false;
+            }
+            // Send files and check that they sent successfully
+            if (!manager.trySendToRpd(list)) {
+                return false;
+            }
         }
-        // Did user log in successfully?
-        if (!Session.getInstance().isLoggedIn()) {
-            return false;
-        }
-        // Send files and check that they sent successfully
-        if (!manager.trySendToRpd(list)) {
-            return false;
-        }
+
         // Write report and display to screen
         Report.writePDFreport(list, reportFile);
         // Delete report files older than retention period

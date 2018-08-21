@@ -38,7 +38,7 @@ public class ErrMsgDialog {
     public static final class Builder {
         private String innerCode;
         private String innerMessage;
-        private String innerAction = "Please contact Dev Team if problem persists.";
+        private String innerAction = "Please contact Dev Team if problem persists."; // Default msg can be overridden if required
 
         private Builder(String code, String message) {
             this.innerCode = code;

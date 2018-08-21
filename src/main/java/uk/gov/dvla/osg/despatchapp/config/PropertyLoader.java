@@ -17,14 +17,17 @@ public class PropertyLoader {
     
     static final Logger LOGGER = LogManager.getLogger();
     private static final Properties properties = new Properties();
+    private String filename;
     
     /**
-     * Instantiates a new property loader.
+     * PropertyLoader loads the properties from the configuration file and validates
+       each entry.
      *
-     * @param filename the filename
+     * @param filename the configuration file holding the properties.
      * @throws IOException Signals that an I/O exception has occurred.
      */
     public PropertyLoader(String filename) throws IOException {
+        this.filename = filename;
         try (FileInputStream input = new FileInputStream(new File(filename))) {
             properties.load(input);
         }
@@ -39,7 +42,7 @@ public class PropertyLoader {
      */
     public String getProperty(String key) throws RuntimeException {
         if (!properties.containsKey(key)) {
-            throw new RuntimeException(MessageFormat.format("Unable to load property [{0}] from file.", key));
+            throw new RuntimeException(MessageFormat.format("Unable to load property [{0}] from file [{1}].", key, filename)) ;
         }
         
         return properties.getProperty(key);
@@ -54,12 +57,12 @@ public class PropertyLoader {
      */
     public int getPropertyInt(String key) throws RuntimeException {
         if (!properties.containsKey(key)) {
-            throw new RuntimeException(MessageFormat.format("Unable to load property [{0}] from Production Configuration file.", key));
+            throw new RuntimeException(MessageFormat.format("Unable to load property [{0}] from file [{1}]", key, filename));
         }
         
         String value = properties.getProperty(key);
         if (!StringUtils.isNumeric(value)) {
-            throw new RuntimeException(MessageFormat.format("Value [{0}] is not valid for the property [{1}].", value, key));
+            throw new RuntimeException(MessageFormat.format("Value [{0}] is not valid for the property [{1}] in file [{2}]", value, key, filename));
         }
         
         return Integer.parseInt(value);

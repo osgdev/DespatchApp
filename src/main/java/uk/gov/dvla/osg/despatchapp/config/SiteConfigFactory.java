@@ -3,14 +3,13 @@ package uk.gov.dvla.osg.despatchapp.config;
 public class SiteConfigFactory {
 
     public static SiteConfig get(String site) {
-        AppConfig config = AppConfig.getInstance();
         switch (site) {
         case "MORRISTON":
-            return config.morriston();
+            return AppConfig.getInstance().morriston();
         case "TY FELIN":
-            return config.tyFelin();
+            return AppConfig.getInstance().tyFelin();
         case "BRP":
-            return config.brp();
+            return AppConfig.getInstance().brp();
         default:
             return null;
         }

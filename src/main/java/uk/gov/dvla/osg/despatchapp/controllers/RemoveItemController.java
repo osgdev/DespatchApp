@@ -24,25 +24,32 @@ public class RemoveItemController {
         this.fileManager = manager;
     }
 
+    /**
+     * Prompts the user to confirm removal of item from ListView. If confirmed
+     * the item is removed from both the ListView and the temp file.
+     *
+     * @param listView the list view
+     */
     public void remove(ListView listView) {
         JobId selectedItem = (JobId) listView.getSelectionModel().getSelectedItem();
         String id = selectedItem.getJobId();
         // display dialog and wait for a button to be clicked
-        Optional<ButtonType> result = RemoveItemDialog.newInstance(id).display();
+        Optional<ButtonType> result = RemoveItemDialog.newInstance(id).displayAndWait();
         // Exit if user cancelled
         if (!result.isPresent() || result.get() != ButtonType.YES) {
             return;
         }
-        // remove item from list
-        int index = listView.getSelectionModel().getSelectedIndex();
-        listView.getItems().remove(index);
         // remove line from temp file
         try {
             fileManager.remove(selectedItem.toString());
         } catch (IOException ex) {
             LOGGER.fatal("Unable to remove the selected item from data file.", ex);
             ErrMsgDialog.builder("Remove JobId", "Unable to remove the selected item from data file.").display();
+            return;
         }
+        // remove item from list
+        int index = listView.getSelectionModel().getSelectedIndex();
+        listView.getItems().remove(index);
     }
 
 }

@@ -33,7 +33,7 @@ public class Report {
 		} catch (DocumentException e) {
 		    ErrMsgDialog.builder(e.getClass().getSimpleName(), e.getMessage());
 		} catch (IOException e) {
-		    ErrMsgDialog.builder(e.getClass().getSimpleName(), "The report pdf is open or unavailable!");
+		    ErrMsgDialog.builder(e.getClass().getSimpleName(), "The report pdf is already open or unavailable!");
 		}
 	}
 

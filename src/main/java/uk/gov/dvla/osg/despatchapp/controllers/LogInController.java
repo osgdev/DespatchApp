@@ -12,7 +12,6 @@ import javafx.scene.control.*;
 import javafx.stage.Stage;
 import uk.gov.dvla.osg.despatchapp.views.ErrMsgDialog;
 import uk.gov.dvla.osg.rpd.web.client.LoginClient;
-import uk.gov.dvla.osg.rpd.web.config.NetworkConfig;
 import uk.gov.dvla.osg.rpd.web.config.Session;
 import uk.gov.dvla.osg.rpd.web.error.RpdErrorResponse;
 
@@ -20,15 +19,15 @@ public class LogInController {
 
     static final Logger LOGGER = LogManager.getLogger();
     private static final boolean DEBUG_MODE = ManagementFactory.getRuntimeMXBean().getInputArguments().toString().indexOf("-agentlib:jdwp") > 0;
-    
+
     @FXML private TextField nameField;
     @FXML private PasswordField passwordField;
     @FXML private Button btnLogin;
     @FXML private Label lblMessage;
 
     /**
-     * Submits login request to RPD webservice. If token is retrieved then the user
-     * is authenticated, else the RPD error message is displayed.
+     * Submits login request to RPD webservice. 
+     * If token is retrieved then the user is authenticated, else the RPD error message dialog is displayed.
      */
     public void btnLoginClicked() {
 
@@ -41,24 +40,25 @@ public class LogInController {
         nameField.setDisable(true);
         passwordField.setDisable(true);
 
-        final LoginClient login = LoginClient.getInstance(NetworkConfig.getInstance());
+        final LoginClient login = LoginClient.getInstance();
 
         // Login performed on background thread to prevent GUI freezing
         new Thread(() -> {
-            
+
             // bypass login while testing
             if (DEBUG_MODE) {
+                Session.getInstance().setToken("TEST123");
+                Platform.runLater(() -> ((Stage) btnLogin.getScene().getWindow()).close());
                 return;
             }
-           
+
             Optional<String> token = login.getSessionToken(Session.getInstance().getUserName(), Session.getInstance().getPassword());
-     
+
             // if token wasn't retrieved & not in debug mode, display error dialog
             if (!token.isPresent()) {
                 Platform.runLater(() -> {
                     RpdErrorResponse error = login.getErrorResponse();
-                    ErrMsgDialog.builder(error.getCode(), error.getMessage())
-                        .action(error.getAction()).display();
+                    ErrMsgDialog.builder(error.getCode(), error.getMessage()).action(error.getAction()).display();
                     // cleanup fields
                     lblMessage.setText("");
                     passwordField.setText("");
