@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.EnumUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -20,6 +21,7 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import uk.gov.dvla.osg.despatchapp.data.FileManager;
 import uk.gov.dvla.osg.despatchapp.models.JobId;
+import uk.gov.dvla.osg.despatchapp.models.PrintSite;
 import uk.gov.dvla.osg.despatchapp.utilities.BarcodeReader;
 import uk.gov.dvla.osg.despatchapp.utilities.FxUtils;
 import uk.gov.dvla.osg.despatchapp.views.ErrMsgDialog;
@@ -30,7 +32,7 @@ public class MainFormController {
     static final Logger LOGGER = LogManager.getLogger();
 
     private static final String EMPTY = "";
-    private static final ObservableList<String> SITES = FXCollections.observableArrayList("MORRISTON", "TY FELIN");
+    private static final ObservableList<PrintSite> SITES = FXCollections.observableArrayList();
 
     @FXML ChoiceBox cbSite;
     @FXML ListView lvContent;
@@ -47,6 +49,7 @@ public class MainFormController {
 
     @FXML
     private void initialize() {
+        EnumUtils.getEnumList(PrintSite.class).forEach(site -> SITES.add(site));
         cbSite.setItems(SITES);
         lvContent.setDisable(true);
         FxUtils.disableNode(btnSubmit);
@@ -182,6 +185,9 @@ public class MainFormController {
      * OnClose event set in the Main class.
      */
     public void shutdown() {
+        if (fileManager == null) {
+            return;
+        }
         fileManager.unlockTempFile();
     }
 

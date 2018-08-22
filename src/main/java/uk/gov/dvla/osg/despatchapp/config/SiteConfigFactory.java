@@ -1,15 +1,15 @@
 package uk.gov.dvla.osg.despatchapp.config;
 
+import uk.gov.dvla.osg.despatchapp.models.PrintSite;
+
 public class SiteConfigFactory {
 
-    public static SiteConfig get(String site) {
+    public static SiteConfig get(PrintSite site) {
         switch (site) {
-        case "MORRISTON":
+        case MORRISTON:
             return AppConfig.getInstance().morriston();
-        case "TY FELIN":
+        case TYFELIN:
             return AppConfig.getInstance().tyFelin();
-        case "BRP":
-            return AppConfig.getInstance().brp();
         default:
             return null;
         }

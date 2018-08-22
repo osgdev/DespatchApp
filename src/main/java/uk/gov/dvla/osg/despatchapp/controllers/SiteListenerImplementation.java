@@ -13,6 +13,7 @@ import uk.gov.dvla.osg.despatchapp.config.SiteConfig;
 import uk.gov.dvla.osg.despatchapp.config.SiteConfigFactory;
 import uk.gov.dvla.osg.despatchapp.data.FileManager;
 import uk.gov.dvla.osg.despatchapp.models.JobId;
+import uk.gov.dvla.osg.despatchapp.models.PrintSite;
 import uk.gov.dvla.osg.despatchapp.utilities.FxUtils;
 import uk.gov.dvla.osg.despatchapp.views.ErrMsgDialog;
 
@@ -29,9 +30,9 @@ public final class SiteListenerImplementation implements ChangeListener {
     @Override
     public void changed(ObservableValue observable, Object oldValue, Object newValue) {
         controller.cbSite.getSelectionModel().select((int) newValue);
-        String siteString = (String) controller.cbSite.getSelectionModel().getSelectedItem();
-        SiteConfig config = SiteConfigFactory.get(siteString);
-        controller.lblSite.setText(siteString);
+        PrintSite chosenSite = (PrintSite) controller.cbSite.getSelectionModel().getSelectedItem();
+        SiteConfig config = SiteConfigFactory.get(chosenSite);
+        controller.lblSite.setText(chosenSite.toString());
         FxUtils.swapControls(controller.cbSite, controller.lblSite);
         controller.lvContent.setDisable(false);
         FxUtils.enableNode(controller.btnSubmit);

@@ -7,6 +7,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import uk.gov.dvla.osg.despatchapp.models.PrintSite;
+
 public class AppConfig {
 
     static final Logger LOGGER = LogManager.getLogger();
@@ -122,7 +124,7 @@ public class AppConfig {
      */
     public SiteConfig morriston() {
         return SiteConfig.builder()
-                         .SiteName("Morriston")
+                         .SiteName(PrintSite.MORRISTON)
                          .Repository(repoDir)
                          .RetentionPeriod(retentionPeriod)
                          .DatFile(mDatFile)
@@ -139,7 +141,7 @@ public class AppConfig {
      */
     public SiteConfig tyFelin() {
         return SiteConfig.builder()
-                         .SiteName("Ty Felin")
+                         .SiteName(PrintSite.TYFELIN)
                          .Repository(repoDir)
                          .RetentionPeriod(retentionPeriod)
                          .DatFile(fDatFile)
@@ -151,7 +153,7 @@ public class AppConfig {
 
     public SiteConfig brp() {
         return SiteConfig.builder()
-                         .SiteName("BRP")
+                         .SiteName(PrintSite.MORRISTON)
                          .Repository(repoDir)
                          .RetentionPeriod(retentionPeriod)
                          .DatFile(brpDatFile)

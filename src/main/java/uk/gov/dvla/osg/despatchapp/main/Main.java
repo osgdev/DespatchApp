@@ -10,6 +10,7 @@ import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.stage.Stage;
 import uk.gov.dvla.osg.despatchapp.config.AppConfig;
 import uk.gov.dvla.osg.despatchapp.controllers.MainFormController;
@@ -27,6 +28,7 @@ import uk.gov.dvla.osg.rpd.web.config.NetworkConfig;
   1.06 Added checking for read/write access to Temp and Repo directories, plus BRP site removed
   1.07 Added RunDate to EOT
   1.08 Fixed issue with RPD Login dialog stalling
+  1.09 Fixed issue with inability to close form on first load - shutdown method
  ************************************************/
 public class Main extends Application {
     
@@ -39,8 +41,8 @@ public class Main extends Application {
     public void start(Stage primaryStage) throws Exception {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/FXML/MainScreen.fxml"));
         Parent root = loader.load();
-        primaryStage.setTitle("Despatch App v1.08");
-        //primaryStage.getIcons().add(new Image(getClass().getResourceAsStream("/Images/logo.jpg")));
+        primaryStage.setTitle("Despatch App v1.09");
+        primaryStage.getIcons().add(new Image(getClass().getResourceAsStream("/Images/dispatch.png")));
         primaryStage.setResizable(false);
         primaryStage.setScene(new Scene(root));
         MainFormController controller = loader.getController();

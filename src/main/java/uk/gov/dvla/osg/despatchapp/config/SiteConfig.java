@@ -1,5 +1,7 @@
 package uk.gov.dvla.osg.despatchapp.config;
 
+import uk.gov.dvla.osg.despatchapp.models.PrintSite;
+
 public class SiteConfig {
 
     private String tempFile;
@@ -8,7 +10,7 @@ public class SiteConfig {
     private String report;
     private String repository;
     private int retentionPeriod;
-    private String site;
+    private PrintSite site;
 
 
     private SiteConfig(Builder builder) {
@@ -45,7 +47,7 @@ public class SiteConfig {
         return this.retentionPeriod;
     }
     
-    public String site() {
+    public PrintSite site() {
         return this.site;
     }
 
@@ -61,18 +63,18 @@ public class SiteConfig {
      * Builder to build {@link SiteConfig}.
      */
     public static final class Builder {
-        private String innerSite;
+        private PrintSite innerSite;
+        private String innerRepository;
+        private int innerRetentionPeriod;
         private String innerTempFile;
         private String innerEotFile;
         private String innerDatFile;
         private String innerReport;
-        private String innerRepository;
-        private int innerRetentionPeriod;
 
         private Builder() {
         }
         
-        public Builder SiteName(String site) {
+        public Builder SiteName(PrintSite site) {
             this.innerSite = site;
             return this;
         }
