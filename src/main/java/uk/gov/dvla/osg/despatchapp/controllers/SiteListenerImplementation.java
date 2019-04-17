@@ -52,7 +52,7 @@ public final class SiteListenerImplementation implements ChangeListener {
         try {
             fileManager.read().forEach(line -> controller.model.add(JobId.fromString(line)));
         } catch (IOException ex) {
-            LOGGER.error("Unable to read from temp data file", ex);
+            LOGGER.error("Unable to read from temp data file {}", ex.getMessage());
             String tempDir = new File(config.tempFile()).getParent();
             ErrMsgDialog.builder("Folder Permissions", "Please check you have read,write access to " + tempDir).display();
             Platform.exit();
