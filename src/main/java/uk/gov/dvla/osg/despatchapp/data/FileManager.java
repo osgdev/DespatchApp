@@ -36,7 +36,7 @@ public class FileManager {
      * @param config the config for the selected site
      */
     public FileManager(SiteConfig config) {
-        LOGGER.trace("Loding File Manager...");
+        LOGGER.debug("Loding File Manager...");
         tempFile = new File(config.tempFile());
 
         String timeStamp = DateUtils.timeStamp("ddMMyyyy_HHmmss");
@@ -52,9 +52,10 @@ public class FileManager {
      * @throws RuntimeException Application is in use by another user
      */
     public List<String> read() throws IOException, RuntimeException {
-        LOGGER.trace("Looking for Temp file...");
+        LOGGER.debug("Looking for Temp file [{}]", tempFile.getAbsolutePath());
         // Create new file if it does not already exist on the file system
         if (!tempFile.exists()) {
+            LOGGER.debug("Temp file [{}] does not exist. Creating new file.", tempFile.getAbsolutePath());
             // Create file
             FileUtils.touch(tempFile);
             // Apply lock on file
@@ -62,12 +63,12 @@ public class FileManager {
             // Return empty list
             return new ArrayList<String>();
         }
-        LOGGER.trace("Checking Temp file is writable");
+        LOGGER.debug("Checking Temp file is writable");
         // Check if another user has the application open
         if (!tempFile.canWrite()) {
             throw new RuntimeException("File already in use");
         }
-        LOGGER.trace("Reading from Temp file...");
+        LOGGER.debug("Reading from Temp file...");
         // Read file contents
         List<String> lines = FileUtils.readLines(tempFile, ENCODING);
         // Apply lock on file
@@ -85,14 +86,14 @@ public class FileManager {
      * @throws IOException Signals that an I/O exception has occurred.
      */
     public void append(String jid) throws IOException {
-        LOGGER.trace("Unlocking Temp File...");
+        LOGGER.debug("Unlocking Temp File...");
         // Temporarily unlock the file
         unlockTempFile();
         // Save JID to file
-        LOGGER.trace("Appending JID to file...");
+        LOGGER.debug("Appending JID to file...");
         FileUtils.writeStringToFile(tempFile, jid + NEWLINE, ENCODING, true);
-        LOGGER.trace("Locking Temp file...");        
         // Re-apply lock on file
+        LOGGER.debug("Locking Temp file...");        
         lockTempFile();
     }
 
@@ -125,7 +126,7 @@ public class FileManager {
         try {
             FileUtils.writeLines(datFile, list, false);
         } catch (IOException ex) {
-            LOGGER.error("Unable to save DAT file {}, {}", datFile, ex);
+            LOGGER.error("Unable to save DAT file {}, {}", datFile.getAbsolutePath(), ex.getMessage());
             ErrMsgDialog.builder("Save file error", "Unable to save DAT file.").display();
             return false;
         }
@@ -219,21 +220,23 @@ public class FileManager {
      * @return true, if successful
      */
     public boolean userHasRepoAccess() {
-        LOGGER.trace("Checking user has repo access...");
-        String repo = FilenameUtils.getPath(datFile.toString());
-        String timeStamp = DateUtils.timeStamp("ddMMyyHHmmss");
-        File testFile = new File(repo + timeStamp + ".tmp");
-        LOGGER.trace("Test File is {}", testFile.toString());
+        String repo = FilenameUtils.getFullPath(datFile.getAbsolutePath());
+        LOGGER.debug("Checking user has repo access to {}", repo);
+        String filename = DateUtils.timeStamp("ddMMyyHHmmss") + ".tmp";
+        File testFile = new File(repo, filename);
+        LOGGER.debug("Test File is {}", testFile.toString());
+        
         try {
-            LOGGER.trace("Writing to repository {}", testFile.getAbsolutePath());
+            LOGGER.debug("Writing to repository {}", testFile.getAbsolutePath());
             FileUtils.writeStringToFile(testFile, "", ENCODING);
-            LOGGER.trace("Deleting test file");
+            LOGGER.debug("Deleting test file");
             FileUtils.deleteQuietly(testFile);
         } catch (IOException ex) {
             LOGGER.debug("Unable to write to repository directory");
             return false;
         }
-        LOGGER.trace("User has access to repo...");
+        
+        LOGGER.debug("User has access to repo...");
         return true;
     }
 }

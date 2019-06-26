@@ -45,8 +45,11 @@ public final class SiteListenerImplementation implements ChangeListener {
         if (!fileManager.userHasRepoAccess()) {
             LOGGER.error("Unable to write to the repository directory");
             String repoDir = config.repository();
-            ErrMsgDialog.builder("Folder Permissions", "Please check you have read,write access to " + repoDir).display();
+            FxUtils.runAndWait(() ->  {
+                ErrMsgDialog.builder("Folder Permissions", "Please check you have read,write access to " + repoDir).display();
+            });
             Platform.exit();
+            System.exit(1);
         }
         
         try {
@@ -54,12 +57,20 @@ public final class SiteListenerImplementation implements ChangeListener {
         } catch (IOException ex) {
             LOGGER.error("Unable to read from temp data file {}", ex.getMessage());
             String tempDir = new File(config.tempFile()).getParent();
-            ErrMsgDialog.builder("Folder Permissions", "Please check you have read,write access to " + tempDir).display();
+            FxUtils.runAndWait(() -> {
+                ErrMsgDialog.builder("Folder Permissions", "Please check you have read,write access to " + tempDir).display();
+            });
             Platform.exit();
+            System.exit(1);
         } catch (RuntimeException ex) {
-            ErrMsgDialog.builder("Application Start", "Application is already in use at this site - " + config.site())
-                        .action("Please close the open application before continuing.").display();
+            FxUtils.runAndWait(() -> {
+                ErrMsgDialog.builder("Application Start", "Application is already in use at this site - " + config.site())
+                            .action("Please close the open application before continuing.")
+                            .display();
+            });
+
             Platform.exit();
+            System.exit(1);
         }
     }
 }

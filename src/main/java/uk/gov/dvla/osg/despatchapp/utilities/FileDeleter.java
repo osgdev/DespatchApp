@@ -46,7 +46,7 @@ public class FileDeleter {
             Files.list(Paths.get(workingDir)).filter(p -> getFileCreationDate(p) < purgeTime)
               .forEach(p -> {
                 if (StringUtils.endsWithAny(p.toString().toUpperCase(), EXTENSIONS)) {
-                    LOGGER.trace("Deleteing file from repository after {} days: {}", daysBack, p.toString());
+                    LOGGER.info("Deleteing file from repository after {} days: {}", daysBack, p.toString());
                     deleteFile(p);
                 }
             });
