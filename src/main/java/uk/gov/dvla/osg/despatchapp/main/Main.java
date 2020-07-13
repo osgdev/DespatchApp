@@ -1,6 +1,9 @@
 package uk.gov.dvla.osg.despatchapp.main;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
 import java.text.MessageFormat;
 
 import org.apache.logging.log4j.LogManager;
@@ -29,25 +32,59 @@ import uk.gov.dvla.osg.rpd.web.config.NetworkConfig;
   1.07 Added RunDate to EOT
   1.08 Fixed issue with RPD Login dialog stalling
   1.09 Fixed issue with inability to close form on first load - shutdown method
+  1.10 Added additonal logging when loading resources
  ************************************************/
 public class Main extends Application {
     
-    static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOG = LogManager.getLogger();
+    private Image logo;
+    private URL fxml;
+    
+    @Override
+    public void init() {
+        try (InputStream asStream = getClass().getResourceAsStream("/Images/dispatch.png")) {
+            logo = new Image(asStream);
+        } catch (IOException ex) {
+            String msg = String.format("Unable to load logo: '%s'", ex.getMessage());
+            LOG.error(msg);
+            showErrorMessage(msg, "Contact Dev team.");
+            System.exit(999);;
+        }
+        
+        try {
+            fxml = getClass().getResource("/FXML/MainScreen.fxml");
+        } catch (Exception ex) {
+            String msg = String.format("Unable to load FXML: '%s'", ex.getMessage());
+            LOG.error(msg);
+            showErrorMessage(msg, "Contact Dev team.");
+            System.exit(999);;
+        }
+    }
     
     /* (non-Javadoc)
      * @see javafx.application.Application#start(javafx.stage.Stage)
      */
     @Override
-    public void start(Stage primaryStage) throws Exception {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/FXML/MainScreen.fxml"));
-        Parent root = loader.load();
-        primaryStage.setTitle("Despatch App v1.09");
-        primaryStage.getIcons().add(new Image(getClass().getResourceAsStream("/Images/dispatch.png")));
-        primaryStage.setResizable(false);
-        primaryStage.setScene(new Scene(root));
-        MainFormController controller = loader.getController();
-        primaryStage.setOnCloseRequest(e -> controller.shutdown());
-        primaryStage.show();
+    public void start(Stage primaryStage) {
+        try {
+            // load root scene
+            FXMLLoader loader = new FXMLLoader(fxml);
+            Parent root = loader.load();
+            // unlock files when scene closes
+            MainFormController controller = loader.getController();
+            primaryStage.setOnCloseRequest(e -> controller.shutdown());
+            // apply window settings
+            primaryStage.setTitle("Despatch App v1.09");
+            primaryStage.getIcons().add(logo);
+            primaryStage.setResizable(false);
+            primaryStage.setScene(new Scene(root));
+            // display the GUI
+            primaryStage.show();
+        } catch (IOException ex) {
+            String msg = String.format("Unable to load window: '%s'", ex.getMessage());
+            LOG.error(msg);
+            showErrorMessage(msg, "Contact Dev team.");
+        }
     }
     
     /**
@@ -59,7 +96,7 @@ public class Main extends Application {
         // Verify correct number of args
         if (args.length != 2) {
             String msg = "Incorrect number of arguments supplied!";
-            LOGGER.fatal(msg);
+            LOG.error(msg);
             showErrorMessage(msg, "Usage: DespatchApp.jar {networkConfig} {appConfig}");
             return;
         }
@@ -68,7 +105,7 @@ public class Main extends Application {
         String networkConfigFile = args[0];
         if (!new File(networkConfigFile).exists()) {
             String msg = MessageFormat.format("Properties File '{0}' doesn't exist", networkConfigFile);
-            LOGGER.fatal(msg);
+            LOG.error(msg);
             showErrorMessage(msg, "Check the filename in the shortcut.");
             return;
         }
@@ -77,7 +114,7 @@ public class Main extends Application {
             // Initialise the network configuration from the file
             NetworkConfig.init(networkConfigFile);
         } catch (RuntimeException ex) {
-            LOGGER.fatal(ex.getMessage());
+            LOG.error(ex.getMessage());
             showErrorMessage(ex.getMessage(), "Check Netowrk Configuration file.");
             return;
         }
@@ -86,7 +123,7 @@ public class Main extends Application {
         String appConfigFile = args[1];
         if (!new File(appConfigFile).exists()) {
             String msg = MessageFormat.format("Properties File '{0}' doesn't exist", appConfigFile);
-            LOGGER.fatal(msg);
+            LOG.error(msg);
             showErrorMessage(msg, "Check the filename in the shortcut.");
             return;
         }
@@ -97,11 +134,11 @@ public class Main extends Application {
             // Checks that the filepaths can be read correctly
             AppConfig.getInstance();
         } catch (RuntimeException ex) {
-            LOGGER.fatal(ex.getMessage());
+            LOG.error(ex.getMessage());
             showErrorMessage(ex.getMessage(), "Check Application Configuration file.");
             return;
         } catch (Exception ex) {
-            LOGGER.fatal(ex.getMessage());
+            LOG.error(ex.getMessage());
             showErrorMessage(ex.getMessage(), "Check Application Configuration file.");
             return;
         }
