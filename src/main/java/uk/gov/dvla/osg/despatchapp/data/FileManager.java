@@ -123,13 +123,18 @@ public class FileManager {
      */
     public boolean trySendToRpd(List<String> list) {
         // Create DAT file in temp folder
+        LOGGER.info("Writing to DAT file {}", datFile.getAbsolutePath());
+        
         try {
             FileUtils.writeLines(datFile, list, false);
         } catch (IOException ex) {
             LOGGER.error("Unable to save DAT file {}, {}", datFile.getAbsolutePath(), ex.getMessage());
-            ErrMsgDialog.builder("Save file error", "Unable to save DAT file.").display();
+            ErrMsgDialog.show("Save file error", "Unable to save DAT file.");
             return false;
         }
+        
+        LOGGER.info("DAT file written to. Sending DAT to RPD.");
+        
         // Send DAT files to RPD via web client
         if (!sendToRpd(datFile)) {
             return false;
@@ -138,20 +143,26 @@ public class FileManager {
         // Create matching EOT file
         String runDate = DateUtils.timeStamp("ddMMyyyy");
         
-        List<String> eotContent = Arrays.asList("RUNVOL=" + list.size(), "USER=" + Session.getInstance().getUserName(), 
-                "RUNDATE=" + runDate);
+        List<String> eotContent = Arrays.asList("RUNVOL=" + list.size(), "USER=" + Session.getInstance().getUserName(), "RUNDATE=" + runDate);
+        
+        LOGGER.info("DAT file transmitted, writing data to EOT file {}", eotFile.getAbsolutePath());
         
         try {
             FileUtils.writeLines(eotFile, eotContent, false);
         } catch (IOException ex) {
-            LOGGER.debug("Unable to save EOT file", ex);
-            ErrMsgDialog.builder("File save error", "Unable to save EOT file").display();
+            LOGGER.info("Unable to save EOT file", ex);
+            ErrMsgDialog.show("File save error", "Unable to save EOT file");
             return false;
         }
+
+        LOGGER.info("EOT file written to. Sending EOT to RPD.");
+        
         // Send EOT files to RPD via web client
         if (!sendToRpd(eotFile)) {
             return false;
         }
+        
+        LOGGER.info("EOT file transmitted. Cleaning up temp files.");
         
         // Remove and rebuild the temp file to clear its contents
         try {
@@ -162,10 +173,12 @@ public class FileManager {
             lockTempFile();
         } catch (IOException ex) {
             LOGGER.error("Unable to delete contents of the site temp file [{}], {}", tempFile, ex.getMessage());
-            ErrMsgDialog.builder("Send Data Files", "Unable to clear the site Temp file").display();
+            ErrMsgDialog.show("Send Data Files", "Unable to clear the site Temp file");
             return false;
         }
 
+        LOGGER.info("File cleanup complete");
+        
         return true;
     }
 
@@ -179,8 +192,8 @@ public class FileManager {
         SubmitJobClient sjc = SubmitJobClient.getInstance();
         if (!sjc.trySubmit(file)) {
             RpdErrorResponse rpdError = sjc.getErrorResponse();
-            LOGGER.error(sjc.toString());
-            ErrMsgDialog.builder(rpdError.getCode(), rpdError.getMessage()).action(rpdError.getAction()).display();
+            LOGGER.error(rpdError.getException());
+            ErrMsgDialog.show(rpdError.getCode(), rpdError.getMessage(), rpdError.getAction());
             return false;
         }
         return true;
@@ -221,22 +234,22 @@ public class FileManager {
      */
     public boolean userHasRepoAccess() {
         String repo = FilenameUtils.getFullPath(datFile.getAbsolutePath());
-        LOGGER.debug("Checking user has repo access to {}", repo);
+        LOGGER.info("Checking user has repo access to {}", repo);
         String filename = DateUtils.timeStamp("ddMMyyHHmmss") + ".tmp";
         File testFile = new File(repo, filename);
-        LOGGER.debug("Test File is {}", testFile.toString());
+        LOGGER.info("Test File is {}", testFile.toString());
         
         try {
-            LOGGER.debug("Writing to repository {}", testFile.getAbsolutePath());
+            LOGGER.info("Writing to repository {}", testFile.getAbsolutePath());
             FileUtils.writeStringToFile(testFile, "", ENCODING);
-            LOGGER.debug("Deleting test file");
+            LOGGER.info("Deleting test file");
             FileUtils.deleteQuietly(testFile);
         } catch (IOException ex) {
-            LOGGER.debug("Unable to write to repository directory");
+            LOGGER.info("Unable to write to repository directory");
             return false;
         }
         
-        LOGGER.debug("User has access to repo...");
+        LOGGER.info("User has access to repo...");
         return true;
     }
 }

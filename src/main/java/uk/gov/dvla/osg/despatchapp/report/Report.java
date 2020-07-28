@@ -31,9 +31,9 @@ public class Report {
 			writeFileContents(reportContent, fName);	
 			display(fName);
 		} catch (DocumentException e) {
-		    ErrMsgDialog.builder(e.getClass().getSimpleName(), e.getMessage());
+		    ErrMsgDialog.show(e.getClass().getSimpleName(), e.getMessage());
 		} catch (IOException e) {
-		    ErrMsgDialog.builder(e.getClass().getSimpleName(), "The report pdf is already open or unavailable!");
+		    ErrMsgDialog.show(e.getClass().getSimpleName(), "The report pdf is already open or unavailable!");
 		}
 	}
 

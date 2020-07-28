@@ -1,7 +1,6 @@
 package uk.gov.dvla.osg.despatchapp.controllers;
 
 import java.io.IOException;
-import java.text.MessageFormat;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
@@ -96,10 +95,7 @@ public class MainFormController {
             fileManager.append(jid.toString());
         } catch (IOException ex) {
             LOGGER.error(ex);
-            
-            ErrMsgDialog.builder("File write error", "Unable to write to file")
-                        .action(MessageFormat.format("Please request read/write access to [{0}]", fileManager.getTempFileDirectory()))
-                        .display();
+            ErrMsgDialog.show("File write error", "Unable to write to file", String.format("Please request read/write access to [%s]", fileManager.getTempFileDirectory()));
             return;
         }
         // All good so add it to the list
@@ -154,7 +150,7 @@ public class MainFormController {
         final CountDownLatch doneLatch = new CountDownLatch(1);
             try {
                 // Login user
-                LoginGui.newInstance().load();
+                LoginGui.newInstance();
                 // Convert model to list of strings
                 List<String> jobIdList = model.stream().map(JobId::getJobId).collect(Collectors.toList());
                 // Send the data to RPD

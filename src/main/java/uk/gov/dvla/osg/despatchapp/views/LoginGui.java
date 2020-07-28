@@ -1,6 +1,7 @@
 package uk.gov.dvla.osg.despatchapp.views;
 
 import java.io.IOException;
+import java.io.InputStream;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -16,27 +17,24 @@ public class LoginGui {
     
     static final Logger LOGGER = LogManager.getLogger();
     
-    
     /**
      * New instance.
      *
      * @return the Login GUI
      */
-    public static LoginGui newInstance() {
-        return new LoginGui();
+    public static void newInstance() {
+        new LoginGui();
     }
     
-    private LoginGui() {}
-    
     /**
-     * Load and show the Login Dialog.
+     * Required as getClass() needs to be an instantiated object to work
      */
-    public void load() {
-        try {
+    private LoginGui() {
+        try (InputStream asStream = getClass().getResourceAsStream("/Images/logo.jpg")) {
             Parent root = FXMLLoader.load(getClass().getResource("/FXML/LoginGui.fxml"));
             Stage loginStage = new Stage();
             loginStage.setTitle("RPD Log In");
-            loginStage.getIcons().add(new Image(getClass().getResourceAsStream("/Images/logo.jpg")));
+            loginStage.getIcons().add(new Image(asStream));
             loginStage.setResizable(false);
             loginStage.initModality(Modality.APPLICATION_MODAL);
             loginStage.setScene(new Scene(root, 300, 250));

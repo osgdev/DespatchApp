@@ -46,7 +46,7 @@ public final class SiteListenerImplementation implements ChangeListener {
             LOGGER.error("Unable to write to the repository directory");
             String repoDir = config.repository();
             FxUtils.runAndWait(() ->  {
-                ErrMsgDialog.builder("Folder Permissions", "Please check you have read,write access to " + repoDir).display();
+                ErrMsgDialog.show("Folder Permissions", "Please check you have read,write access to " + repoDir);
             });
             Platform.exit();
             System.exit(1);
@@ -58,15 +58,13 @@ public final class SiteListenerImplementation implements ChangeListener {
             LOGGER.error("Unable to read from temp data file {}", ex.getMessage());
             String tempDir = new File(config.tempFile()).getParent();
             FxUtils.runAndWait(() -> {
-                ErrMsgDialog.builder("Folder Permissions", "Please check you have read,write access to " + tempDir).display();
+                ErrMsgDialog.show("Folder Permissions", "Please check you have read,write access to " + tempDir);
             });
             Platform.exit();
             System.exit(1);
         } catch (RuntimeException ex) {
             FxUtils.runAndWait(() -> {
-                ErrMsgDialog.builder("Application Start", "Application is already in use at this site - " + config.site())
-                            .action("Please close the open application before continuing.")
-                            .display();
+                ErrMsgDialog.show("Application Start", "Application is already in use at this site - " + config.site(), "Please close the open application before continuing.");;
             });
 
             Platform.exit();

@@ -21,25 +21,23 @@ import uk.gov.dvla.osg.despatchapp.utilities.FxUtils;
 import uk.gov.dvla.osg.despatchapp.views.ErrMsgDialog;
 import uk.gov.dvla.osg.rpd.web.config.NetworkConfig;
 
-/**************** REVISION HISTORY ***************
-  1.00 Initial Version
-  1.01 Added full RPD Web Client functionality
-  1.02 Fixed issue with FileDeleter retention period
-  1.03 Added application credentials to submit method in web client
-  1.04 Fixed issue with time being displayed as 12hr
-  1.05 Added file locking to ensure only one open application per site
-  1.06 Added checking for read/write access to Temp and Repo directories, plus BRP site removed
-  1.07 Added RunDate to EOT
-  1.08 Fixed issue with RPD Login dialog stalling
-  1.09 Fixed issue with inability to close form on first load - shutdown method
-  1.10 Added additonal logging when loading resources
+/****************
+ * REVISION HISTORY *************** 1.00 Initial Version 1.01 Added full RPD Web
+ * Client functionality 1.02 Fixed issue with FileDeleter retention period 1.03
+ * Added application credentials to submit method in web client 1.04 Fixed issue
+ * with time being displayed as 12hr 1.05 Added file locking to ensure only one
+ * open application per site 1.06 Added checking for read/write access to Temp
+ * and Repo directories, plus BRP site removed 1.07 Added RunDate to EOT 1.08
+ * Fixed issue with RPD Login dialog stalling 1.09 Fixed issue with inability to
+ * close form on first load - shutdown method 1.10 Added additonal logging when
+ * loading resources
  ************************************************/
 public class Main extends Application {
-    
+
     private static final Logger LOG = LogManager.getLogger();
     private Image logo;
     private URL fxml;
-    
+
     @Override
     public void init() {
         try (InputStream asStream = getClass().getResourceAsStream("/Images/dispatch.png")) {
@@ -48,22 +46,28 @@ public class Main extends Application {
             String msg = String.format("Unable to load logo: '%s'", ex.getMessage());
             LOG.error(msg);
             showErrorMessage(msg, "Contact Dev team.");
-            System.exit(999);;
+            System.exit(999);
+        } catch (Exception ex) {
+            String msg = String.format("Maven load error: '%s'", ex.getMessage());
+            LOG.error(msg);
+            showErrorMessage(msg, "Navigate to: Build Path > Configure Build Path... > DespatchApp/src/Main/Resources > Excluded\n Remove \"**\"");
+            System.exit(999);
         }
-        
+
         try {
             fxml = getClass().getResource("/FXML/MainScreen.fxml");
         } catch (Exception ex) {
             String msg = String.format("Unable to load FXML: '%s'", ex.getMessage());
             LOG.error(msg);
             showErrorMessage(msg, "Contact Dev team.");
-            System.exit(999);;
+            System.exit(999);
+            ;
         }
     }
-    
+
     /* (non-Javadoc)
-     * @see javafx.application.Application#start(javafx.stage.Stage)
-     */
+     * 
+     * @see javafx.application.Application#start(javafx.stage.Stage) */
     @Override
     public void start(Stage primaryStage) {
         try {
@@ -74,7 +78,7 @@ public class Main extends Application {
             MainFormController controller = loader.getController();
             primaryStage.setOnCloseRequest(e -> controller.shutdown());
             // apply window settings
-            primaryStage.setTitle("Despatch App v1.09");
+            primaryStage.setTitle("Despatch App v1.10");
             primaryStage.getIcons().add(logo);
             primaryStage.setResizable(false);
             primaryStage.setScene(new Scene(root));
@@ -86,7 +90,7 @@ public class Main extends Application {
             showErrorMessage(msg, "Contact Dev team.");
         }
     }
-    
+
     /**
      * The main method.
      *
@@ -100,7 +104,7 @@ public class Main extends Application {
             showErrorMessage(msg, "Usage: DespatchApp.jar {networkConfig} {appConfig}");
             return;
         }
-        
+
         // Check network config file path is correct
         String networkConfigFile = args[0];
         if (!new File(networkConfigFile).exists()) {
@@ -109,7 +113,7 @@ public class Main extends Application {
             showErrorMessage(msg, "Check the filename in the shortcut.");
             return;
         }
-        
+
         try {
             // Initialise the network configuration from the file
             NetworkConfig.init(networkConfigFile);
@@ -118,7 +122,7 @@ public class Main extends Application {
             showErrorMessage(ex.getMessage(), "Check Netowrk Configuration file.");
             return;
         }
-        
+
         // Check app config file path is correct
         String appConfigFile = args[1];
         if (!new File(appConfigFile).exists()) {
@@ -147,12 +151,14 @@ public class Main extends Application {
     }
 
     /**
-     * Show error message to the user and wait for the dialog to close before continuing.
+     * Show error message to the user and wait for the dialog to close before
+     * continuing.
+     * 
      * @param msg the error message
      * @param action the error action
      */
     public static void showErrorMessage(String msg, String action) {
-        FxUtils.runAndWait(() -> ErrMsgDialog.builder("Application Start", msg).action(action).display());
+        FxUtils.runAndWait(() -> ErrMsgDialog.show("Application Start", msg, action));
     }
 
 }

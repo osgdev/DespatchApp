@@ -6,52 +6,25 @@ import javafx.stage.Modality;
 
 public class ErrMsgDialog {
 
-    final String code, message, action;
+    private static final Alert DIALOG = new Alert(AlertType.ERROR);
 
-    private ErrMsgDialog(Builder builder) {
-        this.code = builder.innerCode;
-        this.message = builder.innerMessage;
-        this.action = builder.innerAction;
+    static {
+        DIALOG.setAlertType(AlertType.ERROR);
+        // show above form
+        DIALOG.initModality(Modality.APPLICATION_MODAL);
+        // Dialog can grow down but not across
+        DIALOG.getDialogPane().setMaxWidth(500); 
     }
     
-    private void display() {
-        Alert alert = new Alert(AlertType.ERROR);
-        alert.getDialogPane().setMaxWidth(500); // Dialog can grow down but not across
-        alert.setTitle(code);
-        alert.setHeaderText(message);
-        alert.setContentText(action);
-        alert.initModality(Modality.APPLICATION_MODAL);
-        alert.showAndWait();
+    public static void show(String code, String message) {
+        show(code,message,"Please contact Dev Team if problem persists.");
+    }
+    
+    public static void show(String code, String message, String action) {
+        DIALOG.setTitle(code);
+        DIALOG.setHeaderText(message);
+        DIALOG.setContentText(action);
+        DIALOG.showAndWait();
     }
 
-    /**
-     * Creates builder to build {@link ErrMsgDialog}.
-     * @return created builder
-     */
-    public static Builder builder(String code, String message) {
-        return new Builder(code, message);
-    }
-
-    /**
-     * Builder to build {@link ErrMsgDialog}.
-     */
-    public static final class Builder {
-        private String innerCode;
-        private String innerMessage;
-        private String innerAction = "Please contact Dev Team if problem persists."; // Default msg can be overridden if required
-
-        private Builder(String code, String message) {
-            this.innerCode = code;
-            this.innerMessage = message;
-        }
-
-        public Builder action(String action) {
-            this.innerAction = action;
-            return this;
-        }
-
-        public void display() {
-            new ErrMsgDialog(this).display();;
-        }
-    }
 }

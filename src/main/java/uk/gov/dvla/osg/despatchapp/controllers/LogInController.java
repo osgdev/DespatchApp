@@ -1,24 +1,15 @@
 package uk.gov.dvla.osg.despatchapp.controllers;
 
-import java.lang.management.ManagementFactory;
-import java.util.Optional;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-import javafx.stage.Stage;
-import uk.gov.dvla.osg.despatchapp.views.ErrMsgDialog;
-import uk.gov.dvla.osg.rpd.web.client.LoginClient;
 import uk.gov.dvla.osg.rpd.web.config.Session;
-import uk.gov.dvla.osg.rpd.web.error.RpdErrorResponse;
 
 public class LogInController {
 
     static final Logger LOGGER = LogManager.getLogger();
-    private static final boolean DEBUG_MODE = ManagementFactory.getRuntimeMXBean().getInputArguments().toString().indexOf("-agentlib:jdwp") > 0;
 
     @FXML private TextField nameField;
     @FXML private PasswordField passwordField;
@@ -40,37 +31,8 @@ public class LogInController {
         nameField.setDisable(true);
         passwordField.setDisable(true);
 
-        final LoginClient login = LoginClient.getInstance();
-
         // Login performed on background thread to prevent GUI freezing
-        new Thread(() -> {
-
-            // bypass login while testing
-            if (DEBUG_MODE) {
-                Session.getInstance().setToken("TEST123");
-                Platform.runLater(() -> ((Stage) btnLogin.getScene().getWindow()).close());
-                return;
-            }
-
-            Optional<String> token = login.getSessionToken(Session.getInstance().getUserName(), Session.getInstance().getPassword());
-
-            // if token wasn't retrieved & not in debug mode, display error dialog
-            if (!token.isPresent()) {
-                Platform.runLater(() -> {
-                    RpdErrorResponse error = login.getErrorResponse();
-                    ErrMsgDialog.builder(error.getCode(), error.getMessage()).action(error.getAction()).display();
-                    // cleanup fields
-                    lblMessage.setText("");
-                    passwordField.setText("");
-                    nameField.setDisable(false);
-                    passwordField.setDisable(false);
-                    passwordField.requestFocus();
-                });
-            } else {
-                Session.getInstance().setToken(token.get());
-                Platform.runLater(() -> ((Stage) btnLogin.getScene().getWindow()).close());
-            }
-        }).start();
+        new Thread(new LoginMethod(nameField, passwordField, btnLogin, lblMessage)).start();
     }
 
     /**
