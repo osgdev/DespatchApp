@@ -26,7 +26,7 @@ public class FileManager {
     static final Logger LOGGER = LogManager.getLogger();
 
     final static Charset ENCODING = StandardCharsets.UTF_8;
-    final static String NEWLINE = "\n"; //Ensures NewLine characters are Unix compatible
+    final static String NEWLINE = "\n"; // Ensures NewLine characters are Unix compatible
 
     private File datFile, eotFile, tempFile;
 
@@ -70,7 +70,14 @@ public class FileManager {
         }
         LOGGER.debug("Reading from Temp file...");
         // Read file contents
-        List<String> lines = FileUtils.readLines(tempFile, ENCODING);
+        List<String> lines = null;
+        try {
+            lines = FileUtils.readLines(tempFile, ENCODING);
+        } catch (IOException ex) {
+            LOGGER.error("Reading from temp file failed: {}", ex.getMessage());
+            ErrMsgDialog.show("File read error", "Unable to read input file");
+        }
+        LOGGER.debug("Temp file read");
         // Apply lock on file
         lockTempFile();
 
@@ -93,7 +100,7 @@ public class FileManager {
         LOGGER.debug("Appending JID to file...");
         FileUtils.writeStringToFile(tempFile, jid + NEWLINE, ENCODING, true);
         // Re-apply lock on file
-        LOGGER.debug("Locking Temp file...");        
+        LOGGER.debug("Locking Temp file...");
         lockTempFile();
     }
 
@@ -124,7 +131,7 @@ public class FileManager {
     public boolean trySendToRpd(List<String> list) {
         // Create DAT file in temp folder
         LOGGER.info("Writing to DAT file {}", datFile.getAbsolutePath());
-        
+
         try {
             FileUtils.writeLines(datFile, list, false);
         } catch (IOException ex) {
@@ -132,21 +139,26 @@ public class FileManager {
             ErrMsgDialog.show("Save file error", "Unable to save DAT file.");
             return false;
         }
-        
-        LOGGER.info("DAT file written to. Sending DAT to RPD.");
-        
+
+        LOGGER.info("DAT file written.");
+
+        LOGGER.info("Sending DAT file to RPD");
         // Send DAT files to RPD via web client
         if (!sendToRpd(datFile)) {
+            LOGGER.info("Unable to send DAT file");
             return false;
         }
-        
+
+        LOGGER.info("DAT file transmitted");
+
         // Create matching EOT file
         String runDate = DateUtils.timeStamp("ddMMyyyy");
-        
-        List<String> eotContent = Arrays.asList("RUNVOL=" + list.size(), "USER=" + Session.getInstance().getUserName(), "RUNDATE=" + runDate);
-        
-        LOGGER.info("DAT file transmitted, writing data to EOT file {}", eotFile.getAbsolutePath());
-        
+
+        List<String> eotContent = Arrays.asList("RUNVOL=" + list.size(), "USER=" + Session.getInstance().getUserName(), "RUNDATE="
+                + runDate);
+
+        LOGGER.info("Writing data to EOT file {}", eotFile.getAbsolutePath());
+
         try {
             FileUtils.writeLines(eotFile, eotContent, false);
         } catch (IOException ex) {
@@ -156,14 +168,14 @@ public class FileManager {
         }
 
         LOGGER.info("EOT file written to. Sending EOT to RPD.");
-        
+
         // Send EOT files to RPD via web client
         if (!sendToRpd(eotFile)) {
             return false;
         }
-        
+
         LOGGER.info("EOT file transmitted. Cleaning up temp files.");
-        
+
         // Remove and rebuild the temp file to clear its contents
         try {
             FileUtils.deleteQuietly(tempFile);
@@ -178,7 +190,7 @@ public class FileManager {
         }
 
         LOGGER.info("File cleanup complete");
-        
+
         return true;
     }
 
@@ -190,27 +202,33 @@ public class FileManager {
      */
     private boolean sendToRpd(File file) {
         SubmitJobClient sjc = SubmitJobClient.getInstance();
-        if (!sjc.trySubmit(file)) {
-            RpdErrorResponse rpdError = sjc.getErrorResponse();
-            LOGGER.error(rpdError.getException());
-            ErrMsgDialog.show(rpdError.getCode(), rpdError.getMessage(), rpdError.getAction());
-            return false;
+
+        if (sjc.trySubmit(file)) {
+            return true;
         }
-        return true;
+    
+        RpdErrorResponse rpdError = sjc.getErrorResponse();
+        LOGGER.error(rpdError.toString());
+        ErrMsgDialog.show(rpdError.getCode(), rpdError.getMessage(), rpdError.getAction());
+        return false;
     }
 
     /**
      * Sets the ReadOnly flag to lock the file.
      */
     private void lockTempFile() {
+        LOGGER.debug("Setting lock on tmp file");
         tempFile.setReadOnly();
+        LOGGER.debug("Lock set");
     }
 
     /**
      * Unlocks the temp file by removing the ReadOnly flag
      */
     public void unlockTempFile() {
+        LOGGER.debug("Removing lock on tmp file");
         tempFile.setWritable(true);
+        LOGGER.debug("Lock removed");
     }
 
     /**
@@ -221,13 +239,13 @@ public class FileManager {
     public String getTempFileDirectory() {
         return FilenameUtils.getFullPath(tempFile.getAbsolutePath());
     }
-    
+
     /**
-     * A new user may be denied access to the QA repository folder. The only way
-     * to check that they can write to the repo folder is by attempting to write
-     * to the folder and catching any exception that occurs.
+     * A new user may be denied access to the QA repository folder. The only way to
+     * check that they can write to the repo folder is by attempting to write to the
+     * folder and catching any exception that occurs.
      * 
-     * Checking isReadOnly() on the file checks only the flag on the file and cannot 
+     * Checking isReadOnly() on the file checks only the flag on the file and cannot
      * check permissions on the directory.
      *
      * @return true, if successful
@@ -238,7 +256,7 @@ public class FileManager {
         String filename = DateUtils.timeStamp("ddMMyyHHmmss") + ".tmp";
         File testFile = new File(repo, filename);
         LOGGER.info("Test File is {}", testFile.toString());
-        
+
         try {
             LOGGER.info("Writing to repository {}", testFile.getAbsolutePath());
             FileUtils.writeStringToFile(testFile, "", ENCODING);
@@ -248,7 +266,7 @@ public class FileManager {
             LOGGER.info("Unable to write to repository directory");
             return false;
         }
-        
+
         LOGGER.info("User has access to repo...");
         return true;
     }

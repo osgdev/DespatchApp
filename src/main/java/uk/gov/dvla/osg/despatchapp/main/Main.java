@@ -78,7 +78,7 @@ public class Main extends Application {
             MainFormController controller = loader.getController();
             primaryStage.setOnCloseRequest(e -> controller.shutdown());
             // apply window settings
-            primaryStage.setTitle("Despatch App v1.10");
+            primaryStage.setTitle("Despatch App v1.0.9");
             primaryStage.getIcons().add(logo);
             primaryStage.setResizable(false);
             primaryStage.setScene(new Scene(root));

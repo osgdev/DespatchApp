@@ -53,7 +53,11 @@ public final class SiteListenerImplementation implements ChangeListener {
         }
         
         try {
-            fileManager.read().forEach(line -> controller.model.add(JobId.fromString(line)));
+            //fileManager.read().forEach(line -> controller.model.add(JobId.fromString(line)));
+            for (String line : fileManager.read()) {
+                JobId jobId = JobId.fromString(line);
+                controller.model.add(jobId);
+            }
         } catch (IOException ex) {
             LOGGER.error("Unable to read from temp data file {}", ex.getMessage());
             String tempDir = new File(config.tempFile()).getParent();
@@ -63,6 +67,7 @@ public final class SiteListenerImplementation implements ChangeListener {
             Platform.exit();
             System.exit(1);
         } catch (RuntimeException ex) {
+            LOGGER.error(ex);
             FxUtils.runAndWait(() -> {
                 ErrMsgDialog.show("Application Start", "Application is already in use at this site - " + config.site(), "Please close the open application before continuing.");;
             });
